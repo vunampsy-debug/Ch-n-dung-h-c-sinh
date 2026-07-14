@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   Printer, Download, Award, TrendingUp, TrendingDown, Minus, 
   BookOpen, Calendar, Compass, User, Sparkles, Star, ChevronRight, FileText
@@ -15,6 +15,29 @@ interface A4PortraitPreviewProps {
 
 export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
   const printRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (containerRef.current) {
+        const parentWidth = containerRef.current.clientWidth;
+        const targetWidth = 794; // approx 210mm at 96dpi
+        const padding = 32; // 2rem padding roughly
+        const availableWidth = parentWidth - padding;
+
+        if (availableWidth < targetWidth) {
+          setScale(availableWidth / targetWidth);
+        } else {
+          setScale(1);
+        }
+      }
+    };
+    
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   const handlePrint = () => {
     window.print();
@@ -67,7 +90,17 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
       </div>
 
       {/* A4 Container (Centered, shadow-on-screen, white-background) */}
-      <div className="flex flex-col items-center bg-slate-100/50 p-2 sm:p-6 rounded-3xl border border-slate-200 gap-8 overflow-x-auto">
+      <div 
+        ref={containerRef}
+        className="flex flex-col items-center bg-slate-100/50 print:bg-transparent p-2 sm:p-4 md:p-6 print:p-0 rounded-3xl print:rounded-none border border-slate-200 print:border-none overflow-hidden print:overflow-visible w-full relative"
+      >
+        <div 
+          className="flex flex-col items-center gap-8 origin-top transition-transform duration-200 print-scale-reset"
+          style={{ 
+            transform: `scale(${scale})`,
+            marginBottom: scale < 1 ? `-${(1 - scale) * 2277}px` : '0px'
+          }}
+        >
         
         {/* Style block for perfect standard A4 printing and page splits */}
         <style dangerouslySetInnerHTML={{ __html: `
@@ -78,6 +111,10 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
             }
             .no-print {
               display: none !important;
+            }
+            .print-scale-reset {
+              transform: none !important;
+              margin-bottom: 0 !important;
             }
             .a4-page {
               margin: 0 !important;
@@ -401,7 +438,7 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
 
               {/* 5 Career sectors match */}
               <div className="space-y-1.5 bg-white p-2.5 rounded-xl border border-slate-200">
-                <span className="text-[8px] font-black text-orange-600 block uppercase tracking-wider">Top 5 Nhóm Ngành Nghề Phù Hợp Nhất (Theo trắc nghiệm Holland & lý thuyết Super):</span>
+                <span className="text-[8px] font-black text-orange-600 block uppercase tracking-wider">TOP 5 ngành nghề gợi ý cho học sinh:</span>
                 <div className="grid grid-cols-5 gap-2">
                   {(report.suitableCareers || [
                     report.futureVision || { title: 'Nhóm ngành Công nghệ', description: 'Nghiên cứu công nghệ thông tin', matchPercentage: 90 }
@@ -457,6 +494,8 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
               </div>
             </div>
           </div>
+
+        </div>
 
         </div>
 

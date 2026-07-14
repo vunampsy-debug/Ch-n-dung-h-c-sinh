@@ -378,7 +378,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
       
       {/* Workspace Header Navbar */}
-      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40 px-6 py-4">
+      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40 px-6 py-4 print:hidden">
         <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -421,10 +421,10 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto w-full flex-1 p-4 md:p-6 grid md:grid-cols-12 gap-6 items-start">
+      <main className="max-w-7xl mx-auto w-full flex-1 p-4 md:p-6 grid md:grid-cols-12 gap-6 items-start print:block print:p-0 print:m-0">
         
         {/* Left column: Sidebar navigation tabs */}
-        <div className="md:col-span-3 space-y-4">
+        <div className="md:col-span-3 space-y-4 print:hidden">
           <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-1">
             <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2.5 pb-2 border-b border-slate-100 mb-2">
               Các bước lập hồ sơ
@@ -515,7 +515,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
         </div>
 
         {/* Right column: Form Content & Portals */}
-        <div className="md:col-span-9 space-y-6">
+        <div className="md:col-span-9 space-y-6 print:block print:w-full print:m-0 print:p-0">
           
           {/* TAB 1: PROFILE TAB */}
           {activeTab === 'profile' && (
@@ -747,7 +747,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
 
                 <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                   {academicScores.map((score, idx) => {
-                    const isSpecialSubject = score.subjectName === 'Vovinam' || score.subjectName === 'PDP' || score.subjectName === 'STEM-AI';
+                    const isSpecialSubject = score.subjectName === 'Vovinam' || score.subjectName === 'PDP' || score.subjectName === 'STEM-AI' || score.subjectName === 'Giáo dục thể chất' || score.subjectName === 'Giáo dục quốc phòng và an ninh' || score.subjectName === 'Hoạt động trải nghiệm, hướng nghiệp' || score.subjectName === 'Nội dung giáo dục của địa phương';
                     return (
                       <div key={idx} className="grid grid-cols-12 gap-4 items-center bg-white p-2.5 rounded-xl border border-slate-150 hover:shadow-sm transition-all text-xs font-semibold">
                         
@@ -760,7 +760,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
                         <div className="col-span-3 flex justify-center">
                           {isSpecialSubject ? (
                             <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
-                              Môn chuyên biệt
+                              Môn đánh giá bằng nhận xét
                             </span>
                           ) : (
                             <button
@@ -785,7 +785,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
                                   : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
                               }`}
                             >
-                              {(score.scoreType || 'numeric') === 'numeric' ? 'Số (0-10)' : 'Đạt / Chưa đạt'}
+                              {(score.scoreType || 'numeric') === 'numeric' ? 'Số (0-10)' : 'Đạt / Không đạt'}
                             </button>
                           )}
                         </div>
@@ -891,17 +891,17 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
                                 type="button"
                                 onClick={() => {
                                   const copy = [...academicScores];
-                                  copy[idx].assessmentResult = 'Chưa đạt';
+                                  copy[idx].assessmentResult = 'Không đạt';
                                   copy[idx].currentScore = 4.0;
                                   setAcademicScores(copy);
                                 }}
                                 className={`px-2 py-0.5 rounded text-[10px] font-extrabold transition-all cursor-pointer ${
-                                  score.assessmentResult === 'Chưa đạt'
+                                  score.assessmentResult === 'Không đạt'
                                     ? 'bg-red-500 text-white shadow-sm'
                                     : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                                 }`}
                               >
-                                Chưa đạt
+                                Không đạt
                               </button>
                             </div>
                           )}

@@ -279,7 +279,7 @@ export function normalizeAndMergeSubjectScores(scores: SubjectScore[]): SubjectS
     const rawName = score.subjectName;
     const normName = normalizeSubjectName(rawName);
     
-    const isSpecial = normName === 'Vovinam' || normName === 'PDP' || normName === 'STEM-AI';
+    const isSpecial = normName === 'Vovinam' || normName === 'PDP' || normName === 'STEM-AI' || normName === 'Giáo dục thể chất' || normName === 'Giáo dục quốc phòng và an ninh' || normName === 'Hoạt động trải nghiệm, hướng nghiệp' || normName === 'Nội dung giáo dục của địa phương';
     
     // Determine the imported or raw score
     const rawScore = score.score !== undefined && score.score !== null ? score.score : score.currentScore;
@@ -348,7 +348,7 @@ export function normalizeAndMergeSubjectScores(scores: SubjectScore[]): SubjectS
       return items[0];
     }
 
-    const isSpecial = normName === 'Vovinam' || normName === 'PDP' || normName === 'STEM-AI';
+    const isSpecial = normName === 'Vovinam' || normName === 'PDP' || normName === 'STEM-AI' || normName === 'Giáo dục thể chất' || normName === 'Giáo dục quốc phòng và an ninh' || normName === 'Hoạt động trải nghiệm, hướng nghiệp' || normName === 'Nội dung giáo dục của địa phương';
 
     if (isSpecial) {
       // Rule: Find if any item is a summary row ("tổng kết")

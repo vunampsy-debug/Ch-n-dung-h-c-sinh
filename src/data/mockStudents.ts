@@ -9,11 +9,11 @@ const rawMockStudents = [
       id: 'HS001',
       name: 'Nguyễn Minh Anh',
       dob: '2009-04-15',
-      class: '11A1',
+      class: '',
       school: 'TRƯỜNG THCS & THPT THỰC NGHIỆM KHGD',
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
       hobbyDescription: 'Lập trình Python, Robot, thiết kế đồ họa 3D',
-      teacherInCharge: 'Cô Nguyễn Thị Hoa'
+      teacherInCharge: ''
     },
     academicScores: [
       { subjectName: 'Toán học', currentScore: 9.2, targetScore: 9.5, trend: 'up' as const, favoriteLevel: 5 },

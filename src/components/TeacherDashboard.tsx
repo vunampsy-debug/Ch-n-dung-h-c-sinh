@@ -79,8 +79,8 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [newId, setNewId] = useState('');
-  const [newClass, setNewClass] = useState('11A1');
-  const [newTeacher, setNewTeacher] = useState('Cô Nguyễn Thị Hoa');
+  const [newClass, setNewClass] = useState('');
+  const [newTeacher, setNewTeacher] = useState('');
 
   // PDF Parsing states
   const [isUploadingPdf, setIsUploadingPdf] = useState(false);

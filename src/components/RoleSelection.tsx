@@ -81,25 +81,6 @@ export default function RoleSelection({ students, onSelectRole, onCreateNewStude
             Khám Phá <span className="text-orange-600">Năng Lực</span>,<br />
             Định Hình <span className="text-slate-800">Tương Lai</span>
           </h1>
-          
-          <p className="text-sm text-slate-600 leading-relaxed font-medium text-balance">
-            Học sinh tự phản tư học tập, nhập điểm số thông minh bằng AI, và nhận biểu đồ radar 6 nhóm năng lực cá nhân hóa cùng tư vấn định hướng từ chuyên gia ảo.
-          </p>
-
-          <div className="hidden md:flex flex-col gap-3.5 text-xs text-slate-500 font-semibold">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-              <span>Biểu đồ radar 6 nhóm năng lực cập nhật trực tiếp</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-              <span>Nhập học bạ thông minh bằng AI & Excel</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-              <span>Hồ sơ A4 PDF chuẩn hóa sẵn in</span>
-            </div>
-          </div>
         </div>
 
         {/* Right Side: Role Selector Panel */}
@@ -242,20 +223,13 @@ export default function RoleSelection({ students, onSelectRole, onCreateNewStude
               </div>
 
               <div className="space-y-3 pt-4">
-                <div className="p-3 bg-slate-100/80 rounded-xl text-[10px] text-slate-500 font-semibold space-y-1">
-                  <span className="text-slate-700 block font-bold">Quyền hạn Dashboard:</span>
-                  <p>✓ Tìm kiếm, lọc học sinh theo khối lớp</p>
-                  <p>✓ Xem biểu đồ phân tích 6 nhóm năng lực lớp</p>
-                  <p>✓ Tải báo cáo tổng hợp</p>
-                </div>
-
                 {!isTeacherPasswordVisible ? (
                   <button
                     onClick={() => {
                       setIsTeacherPasswordVisible(true);
                       setPasswordError('');
                     }}
-                    className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                    className="w-full py-2 px-4 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl shadow-md shadow-slate-800/10 hover:shadow-slate-800/20 flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                   >
                     <span>Vào Bảng Điều Khiển Giáo Viên</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -310,7 +284,7 @@ export default function RoleSelection({ students, onSelectRole, onCreateNewStude
 
           <div className="pt-2 text-center text-[10px] text-slate-400 font-semibold flex items-center justify-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5" />
-            <span>© 2026 Hệ thống Chân Dung & Hướng nghiệp Học sinh Thực Nghiệm</span>
+            <span>© Namlv26 - THPT FPT Tây Hà Nội</span>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { SubjectScore, ExperientialActivity, SurveyResponse, CompetencyGroup } from '../types';
+import type { SubjectScore, ExperientialActivity, SurveyResponse, CompetencyGroup } from '../types.ts';
 
 export function calculateCompetencies(
   academicScores: SubjectScore[],

@@ -103,11 +103,11 @@ export default function App() {
         id: mshs,
         name,
         dob: '',
-        class: '11A1', // Default starter class
+        class: '', // Default starter class
         school: 'THPT FPT Tây Hà Nội', // Default starter school
         avatar: '',
         hobbyDescription: '',
-        teacherInCharge: 'Cô Nguyễn Thị Hoa'
+        teacherInCharge: ''
       },
       // Requirement: pre-populate core subjects with default score 0
       academicScores: [
