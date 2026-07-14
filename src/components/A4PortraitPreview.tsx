@@ -270,65 +270,84 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
             </div>
 
             {/* IV. AI PORTRAIT CAREER RECOMMENDATION */}
-            <div className="border border-slate-200 rounded-3xl p-4 bg-orange-50/10 space-y-3.5">
+            <div className="border border-slate-200 rounded-2xl p-3 bg-orange-50/5 space-y-2.5 [word-break:keep-all]">
               
               {/* Section title */}
-              <div className="flex justify-between items-center border-b border-orange-100 pb-1.5">
+              <div className="flex justify-between items-center border-b border-orange-100 pb-1">
                 <div className="flex items-center gap-1.5 text-orange-700">
-                  <Sparkles className="w-4 h-4 fill-orange-500 text-orange-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-wider">Định Hướng Học Tập & Khuyến Nghị Phát Triển Từ AI</span>
+                  <Sparkles className="w-3.5 h-3.5 fill-orange-500 text-orange-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Hồ Sơ Hướng Nghiệp Chuyên Sâu & Khuyến Nghị Phát Triển Từ AI</span>
                 </div>
                 <span className="text-[8px] font-black text-orange-500 bg-orange-50 border border-orange-200/50 px-2 py-0.5 rounded-full uppercase tracking-wider">Khuyến nghị chuyên sâu</span>
               </div>
 
-              {/* Dynamic Job Matching banner */}
-              <div className="grid grid-cols-12 gap-3 bg-white p-2.5 rounded-2xl border border-orange-100">
-                <div className="col-span-9 space-y-1">
-                  <span className="text-[8px] font-black text-orange-600 block uppercase tracking-wider">Ngành học/Lĩnh vực tương thích nhất:</span>
-                  <h3 className="text-xs font-black text-slate-800 leading-none">{report.futureVision.title}</h3>
-                  <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">{report.futureVision.description}</p>
-                </div>
-                <div className="col-span-3 border-l border-orange-100 pl-3 flex flex-col items-center justify-center shrink-0">
-                  <span className="text-[8px] font-black text-slate-400 block uppercase tracking-wider text-center leading-none mb-1">Độ tương thích</span>
-                  <span className="text-lg font-black font-mono text-orange-600 leading-none">{report.futureVision.matchPercentage}%</span>
-                  <div className="flex gap-0.5 mt-1">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="w-2 h-2 fill-orange-500 text-orange-500 shrink-0" />
+              {/* Strengths, Weaknesses & Improvements */}
+              <div className="grid grid-cols-3 gap-2 text-[9px] leading-relaxed">
+                <div className="space-y-1 bg-emerald-50/25 p-2 rounded-xl border border-emerald-100">
+                  <span className="text-[8px] font-black text-emerald-700 block uppercase tracking-wider">Thế mạnh nổi bật:</span>
+                  <ul className="space-y-0.5 text-slate-700 list-disc pl-3 font-semibold">
+                    {report.strengths.slice(0, 3).map((s, idx) => (
+                      <li key={idx} className="[word-break:keep-all]">{s}</li>
                     ))}
-                  </div>
+                  </ul>
+                </div>
+                
+                <div className="space-y-1 bg-rose-50/25 p-2 rounded-xl border border-rose-100">
+                  <span className="text-[8px] font-black text-rose-700 block uppercase tracking-wider">Điểm hạn chế cần nhận thức:</span>
+                  <ul className="space-y-0.5 text-slate-700 list-disc pl-3 font-semibold">
+                    {(report.weaknesses || [
+                      'Dễ gặp áp lực quá tải khi gánh vác nhiều nhiệm vụ cùng lúc.',
+                      'Còn rụt rè, chưa chủ động nêu ý kiến phản biện trước đám đông.'
+                    ]).slice(0, 3).map((w, idx) => (
+                      <li key={idx} className="[word-break:keep-all]">{w}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-1 bg-amber-50/25 p-2 rounded-xl border border-amber-100">
+                  <span className="text-[8px] font-black text-amber-700 block uppercase tracking-wider">Định hướng cần rèn luyện:</span>
+                  <ul className="space-y-0.5 text-slate-700 list-disc pl-3 font-semibold">
+                    {report.improvements.slice(0, 3).map((i, idx) => (
+                      <li key={idx} className="[word-break:keep-all]">{i}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
-              {/* Strengths & Improvements */}
-              <div className="grid grid-cols-2 gap-4 text-[9px] leading-relaxed">
-                <div className="space-y-1 bg-white p-2.5 rounded-xl border border-slate-100">
-                  <span className="text-[8px] font-black text-emerald-600 block uppercase tracking-wider">Thế mạnh nổi bật:</span>
-                  <ul className="space-y-1 text-slate-700 list-disc pl-3 font-semibold">
-                    {report.strengths.slice(0, 3).map((s, idx) => (
-                      <li key={idx}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="space-y-1 bg-white p-2.5 rounded-xl border border-slate-100">
-                  <span className="text-[8px] font-black text-amber-600 block uppercase tracking-wider">Khía cạnh cần rèn luyện:</span>
-                  <ul className="space-y-1 text-slate-700 list-disc pl-3 font-semibold">
-                    {report.improvements.slice(0, 2).map((s, idx) => (
-                      <li key={idx}>{s}</li>
-                    ))}
-                  </ul>
+              {/* 5 Career sectors match */}
+              <div className="space-y-1.5 bg-white p-2.5 rounded-xl border border-slate-200">
+                <span className="text-[8px] font-black text-orange-600 block uppercase tracking-wider">Top 5 Nhóm Ngành Nghề Phù Hợp Nhất (Theo Holland & Super):</span>
+                <div className="grid grid-cols-5 gap-2">
+                  {(report.suitableCareers || [
+                    report.futureVision || { title: 'Nhóm ngành Công nghệ', description: 'Nghiên cứu công nghệ thông tin', matchPercentage: 90 }
+                  ]).slice(0, 5).map((career, idx) => (
+                    <div key={idx} className="p-1.5 rounded-lg border border-slate-100 bg-slate-50/50 flex flex-col justify-between h-[64px]">
+                      <div>
+                        <div className="flex justify-between items-start gap-1">
+                          <span className="text-[7.5px] font-extrabold text-slate-700 leading-tight truncate w-[80%] block" title={career.title}>
+                            {idx + 1}. {career.title}
+                          </span>
+                          <span className="text-[8px] font-black text-orange-600 font-mono leading-none shrink-0">{career.matchPercentage}%</span>
+                        </div>
+                        <p className="text-[6.5px] text-slate-400 font-medium leading-normal mt-0.5 line-clamp-3 [word-break:keep-all]">
+                          {career.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Action advice roadmap */}
-              <div className="bg-white p-3 rounded-2xl border border-slate-150 text-[9px] leading-relaxed space-y-1.5">
+              <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-[9px] leading-relaxed space-y-1">
                 <span className="text-[8px] font-black text-slate-400 block uppercase tracking-wider">Lộ trình rèn luyện hành động cụ thể năm học mới:</span>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   {report.advice.slice(0, 3).map((adv, idx) => (
-                    <div key={idx} className="p-2 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5 relative">
-                      <span className="absolute -top-1.5 -left-1.5 w-4 h-4 rounded-full bg-slate-800 text-white flex items-center justify-center text-[8px] font-black">
+                    <div key={idx} className="p-1.5 bg-slate-50 rounded-lg border border-slate-100 space-y-0.5 relative flex items-start gap-1.5">
+                      <span className="w-3.5 h-3.5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[7.5px] font-black shrink-0 mt-0.5">
                         {idx + 1}
                       </span>
-                      <p className="font-semibold text-slate-700 leading-normal pl-1 pt-1">{adv}</p>
+                      <p className="font-semibold text-slate-600 leading-snug [word-break:keep-all]">{adv}</p>
                     </div>
                   ))}
                 </div>

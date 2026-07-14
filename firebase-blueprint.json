@@ -1,0 +1,32 @@
+{
+  "entities": {
+    "StudentReport": {
+      "title": "StudentReport",
+      "description": "Báo cáo hồ sơ chân dung học sinh bao gồm điểm số, hoạt động trải nghiệm, định hướng nghề nghiệp.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Mã số học sinh (MSHS)" },
+        "profile": { "type": "object", "description": "Thông tin cá nhân học sinh" },
+        "academicScores": { "type": "array", "description": "Kết quả học tập các môn học" },
+        "experientialActivities": { "type": "array", "description": "Hoạt động trải nghiệm sáng tạo ngoại khóa" },
+        "survey": { "type": "object", "description": "Khảo sát phản tư hướng nghiệp" },
+        "competencies": { "type": "array", "description": "Kết quả đánh giá 6 nhóm năng lực cốt lõi" },
+        "strengths": { "type": "array", "description": "Các điểm mạnh vượt trội" },
+        "weaknesses": { "type": "array", "description": "Các điểm hạn chế cần nhận thức" },
+        "improvements": { "type": "array", "description": "Các khía cạnh cần rèn luyện thêm" },
+        "futureVision": { "type": "object", "description": "Lĩnh vực ngành nghề tương thích hàng đầu" },
+        "suitableCareers": { "type": "array", "description": "Top 5 nhóm ngành nghề phù hợp" },
+        "advice": { "type": "array", "description": "Lộ trình rèn luyện hành động cụ thể" },
+        "isPortraitGenerated": { "type": "boolean", "description": "Trạng thái đã phân tích bằng AI" },
+        "createdAt": { "type": "string", "description": "Thời gian khởi tạo báo cáo" }
+      },
+      "required": ["id", "profile", "academicScores", "survey", "isPortraitGenerated", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/student_reports/{reportId}": {
+      "schema": "StudentReport",
+      "description": "Bộ lưu trữ hồ sơ học sinh trực tuyến"
+    }
+  }
+}

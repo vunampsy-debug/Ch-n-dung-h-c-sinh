@@ -10,6 +10,8 @@ import ExcelImporter from './ExcelImporter';
 import A4PortraitPreview from './A4PortraitPreview';
 import { normalizeSubjectName, normalizeAndMergeSubjectScores } from '../utils/subjectNormalization';
 import { parseTranscript, parseExperientialText, parseExperientialPdf, generateAIPortrait } from '../utils/geminiClient';
+import { db } from "../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 interface StudentWorkspaceProps {
   report: StudentReport;
@@ -238,6 +240,30 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
     }
   };
 
+  // Hàm xử lý lưu dữ liệu sau khi AI trả kết quả về thành công
+  const saveStudentPortraitToDatabase = async (
+    studentName: string,
+    className: string,
+    surveyAnswers: any,      // Dữ liệu câu trả lời các mục I, II, III, IV
+    aiAnalysisResult: any    // Kết quả phân tích SWOT + 5 ngành nghề từ Gemini
+  ) => {
+    try {
+      // Gửi bản ghi vào bảng "student_portraits"
+      await addDoc(collection(db, "student_portraits"), {
+        fullName: studentName,
+        className: className,
+        answers: surveyAnswers,
+        aiEvaluation: aiAnalysisResult,
+        createdAt: serverTimestamp() // Tự động lấy thời gian nộp bài trên server
+      });
+      
+      alert("Hệ thống đã đồng bộ thành công chân dung của em lên lớp học!");
+    } catch (error) {
+      console.error("Lỗi đồng bộ cơ sở dữ liệu: ", error);
+      alert("Có lỗi xảy ra khi đồng bộ dữ liệu. Em hãy báo lại với thầy/cô nhé!");
+    }
+  };
+
   // Call API to Generate complete Portrait with AI
   const handleGenerateAIPortrait = async () => {
     setIsGenerating(true);
@@ -260,8 +286,10 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
         experientialActivities,
         survey,
         strengths: data.strengths || [],
+        weaknesses: data.weaknesses || [],
         improvements: data.improvements || [],
         futureVision: data.futureVision || { title: 'Đang phân tích', description: '', matchPercentage: 80 },
+        suitableCareers: data.suitableCareers || [],
         advice: data.advice || [],
         competencies: data.competencies || report.competencies,
         isPortraitGenerated: true,
@@ -270,6 +298,21 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
 
       onSaveReport(updatedReport);
       setActiveTab('portrait');
+
+      // Ngầm gửi dữ liệu này lên database Firestore
+      const aiAnalysisResult = {
+        strengths: (data.strengths || []).join(', ') || 'Chưa bộc lộ thế mạnh nổi bật',
+        improvements: (data.improvements || []).join(', ') || 'Chưa bộc lộ định hướng cải thiện',
+        careers: (data.suitableCareers || []).map((c: any) => `${c.title} (${c.matchPercentage}%)`)
+      };
+
+      await saveStudentPortraitToDatabase(
+        profile.name,
+        profile.class,
+        survey,
+        aiAnalysisResult
+      );
+
     } catch (err: any) {
       setGenerateError('Hệ thống AI bận hoặc chưa thiết lập khoá API. Vui lòng bấm thử lại hoặc liên hệ giáo viên đồng hành.');
     } finally {

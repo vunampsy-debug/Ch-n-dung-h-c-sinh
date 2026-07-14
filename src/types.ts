@@ -58,8 +58,10 @@ export interface StudentReport {
   survey: SurveyResponse;
   competencies: CompetencyGroup[];
   strengths: string[];
+  weaknesses: string[];
   improvements: string[];
   futureVision: CareerVision;
+  suitableCareers: CareerVision[];
   advice: string[];
   isPortraitGenerated: boolean;
   createdAt: string;

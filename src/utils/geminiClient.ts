@@ -304,8 +304,13 @@ export async function generateAIPortrait(
   const ai = getGeminiClient();
   if (ai) {
     try {
-      const prompt = `Bạn là một chuyên gia tư vấn hướng nghiệp xuất sắc và nhà tâm lý học giáo dục học đường Việt Nam.
-      Dựa trên thông tin học sinh dưới đây, hãy lập hồ sơ chân dung học sinh, đánh giá chuyên sâu thế mạnh, định hướng phát triển và nghề nghiệp tương lai phù hợp nhất.
+      const prompt = `Bạn là một chuyên gia tư vấn hướng nghiệp học đường xuất sắc tại Việt Nam, am hiểu sâu sắc các giáo trình hướng nghiệp chuyên nghiệp quốc tế và trong nước, đặc biệt là:
+      1. Lý thuyết mật mã Holland (RIASEC - Realistic, Investigative, Artistic, Social, Enterprising, Conventional) để định hình tính cách nghề nghiệp.
+      2. Lý thuyết phát triển nghề nghiệp của Donald Super (Donald Super's Career Development Theory) tập trung vào giai đoạn Khám phá (Exploration stage) của học sinh trung học.
+      3. Thuyết Trí thông minh đa dạng của Howard Gardner để nhận diện các vùng thông minh vượt trội thông qua kết quả học tập và hoạt động ngoại khóa.
+      4. Mô hình SWOT cá nhân để phân tích cấu trúc Điểm mạnh (Strengths), Điểm hạn chế (Weaknesses), và Điểm cần cải thiện (Improvements) dựa trên bối cảnh học đường Việt Nam.
+
+      Dựa trên hồ sơ của học sinh dưới đây, hãy tiến hành phân tích hướng nghiệp chuyên sâu và khách quan nhất:
 
       THÔNG TIN HỌC SINH:
       - Tên: ${profile.name}
@@ -333,22 +338,67 @@ export async function generateAIPortrait(
       CÁC ĐÁNH GIÁ NĂNG LỰC CƠ BẢN ĐÃ TÍNH TOÁN:
       ${baseCompetencies.map(c => `- ${c.name}: Điểm nền tảng ${c.score}/100 (${c.level})`).join('\n')}
 
-      YÊU CẦU:
-      Hãy trả về một đối tượng JSON phân tích sắc bén, giàu tính nhân văn, khuyến khích học sinh rèn luyện, định dạng chính xác theo cấu trúc JSON dưới đây (viết hoàn toàn bằng tiếng Việt):
+      YÊU CẦU ĐẦU RA:
+      Hãy phân tích kết quả học tập và phản tư để đưa ra:
+      - Phân tích 3 Điểm mạnh vượt trội của học sinh (đóng góp tích cực cho định hướng nghề nghiệp).
+      - Phân tích 2-3 Điểm hạn chế hiện tại (các rào cản tâm lý, thói quen, kỹ năng cần nhận thức rõ ràng).
+      - Phân tích 2-3 Điểm cần cải thiện rèn luyện cụ thể để học sinh bứt phá trong tương lai.
+      - Đưa ra đúng 5 nhóm ngành nghề phù hợp nhất với học sinh (mỗi nhóm ngành nghề bao gồm: tên nhóm ngành nghề bằng tiếng Việt chuẩn, mô tả lý giải sự phù hợp và phần trăm độ tương khớp).
+      - Thiết kế lộ trình rèn luyện hành động cụ thể gồm 3 lời khuyên.
+
+      Hãy trả về một đối tượng JSON viết hoàn toàn bằng tiếng Việt với cấu trúc chuẩn dưới đây:
       {
         "strengths": [
-          "3 câu tóm tắt cụ thể về thế mạnh vượt trội của học sinh này dựa trên học lực, sở thích và khảo sát"
+          "Phân tích điểm mạnh 1 (viết sâu sắc, mang tính khích lệ)",
+          "Phân tích điểm mạnh 2",
+          "Phân tích điểm mạnh 3"
+        ],
+        "weaknesses": [
+          "Phân tích điểm hạn chế 1 (chân thực, mang tính xây dựng cao, không chỉ trích)",
+          "Phân tích điểm hạn chế 2",
+          "Phân tích điểm hạn chế 3 (nếu có)"
         ],
         "improvements": [
-          "2 câu chỉ ra điểm cần cải thiện, rèn luyện thêm một cách xây dựng và tích cực"
+          "Phương hướng rèn luyện, cải thiện 1 tương ứng với điểm hạn chế",
+          "Phương hướng rèn luyện, cải thiện 2",
+          "Phương hướng rèn luyện, cải thiện 3 (nếu có)"
         ],
         "futureVision": {
-          "title": "Tên ngành nghề/Vị trí tương lai phù hợp nhất (ví dụ: Chuyên gia Phân tích Dữ liệu, Nhà Thiết kế Sáng tạo, v.v.)",
-          "description": "2-3 câu mô tả chi tiết công việc này là gì, tại sao nó khớp với giá trị tương lai, thế mạnh của học sinh",
-          "matchPercentage": "Điểm phần trăm độ phù hợp (kiểu số nguyên từ 70 đến 99)"
+          "title": "Nhóm ngành nghề phù hợp nhất (trùng với nhóm ngành nghề số 1 trong danh sách 5 nhóm)",
+          "description": "Lý giải ngắn gọn tại sao đây là lựa chọn hàng đầu",
+          "matchPercentage": 95
         },
+        "suitableCareers": [
+          {
+            "title": "Tên Nhóm ngành nghề phù hợp 1 (Ví dụ: Nhóm ngành Kỹ thuật Phần mềm & Trí tuệ Nhân tạo)",
+            "description": "Mô tả chi tiết nhóm ngành nghề và giải thích sự tương thích với mật mã Holland, thế mạnh học sinh.",
+            "matchPercentage": 95
+          },
+          {
+            "title": "Tên Nhóm ngành nghề phù hợp 2",
+            "description": "Mô tả chi tiết nhóm ngành nghề và lý giải sự tương thích.",
+            "matchPercentage": 90
+          },
+          {
+            "title": "Tên Nhóm ngành nghề phù hợp 3",
+            "description": "Mô tả chi tiết nhóm ngành nghề và lý giải sự tương thích.",
+            "matchPercentage": 85
+          },
+          {
+            "title": "Tên Nhóm ngành nghề phù hợp 4",
+            "description": "Mô tả chi tiết nhóm ngành nghề và lý giải sự tương thích.",
+            "matchPercentage": 80
+          },
+          {
+            "title": "Tên Nhóm ngành nghề phù hợp 5",
+            "description": "Mô tả chi tiết nhóm ngành nghề và lý giải sự tương thích.",
+            "matchPercentage": 75
+          }
+        ],
         "advice": [
-          "3 lời khuyên rèn luyện cụ thể, thiết thực, có tính hành động cao cho học sinh trong năm học tới"
+          "Lời khuyên rèn luyện hành động 1",
+          "Lời khuyên rèn luyện hành động 2",
+          "Lời khuyên rèn luyện hành động 3"
         ],
         "competencies": [
           {
@@ -369,6 +419,7 @@ export async function generateAIPortrait(
             type: Type.OBJECT,
             properties: {
               strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+              weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
               improvements: { type: Type.ARRAY, items: { type: Type.STRING } },
               futureVision: {
                 type: Type.OBJECT,
@@ -378,6 +429,18 @@ export async function generateAIPortrait(
                   matchPercentage: { type: Type.INTEGER }
                 },
                 required: ['title', 'description', 'matchPercentage']
+              },
+              suitableCareers: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    title: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    matchPercentage: { type: Type.INTEGER }
+                  },
+                  required: ['title', 'description', 'matchPercentage']
+                }
               },
               advice: { type: Type.ARRAY, items: { type: Type.STRING } },
               competencies: {
@@ -395,7 +458,7 @@ export async function generateAIPortrait(
                 }
               }
             },
-            required: ['strengths', 'improvements', 'futureVision', 'advice', 'competencies']
+            required: ['strengths', 'weaknesses', 'improvements', 'futureVision', 'suitableCareers', 'advice', 'competencies']
           }
         }
       );
@@ -414,44 +477,62 @@ export async function generateAIPortrait(
     `Thích ứng nhanh và ham học hỏi lĩnh vực ${survey.q9_fieldsOfStudy?.[0] || 'mới của thời đại số'}.`
   ];
 
-  const improvementsList = [
-    `Cần phân bổ thời gian cân bằng hơn giữa học tập kiến thức và rèn luyện thể chất/kỹ năng mềm.`,
-    `Cần cởi mở chia sẻ ý kiến phản biện để nâng cao vị thế và sự ảnh hưởng tích cực trong đội nhóm.`
+  const weaknessesList = [
+    `Còn đôi chút rụt rè khi trình bày ý kiến phản biện cá nhân trước đám đông hoặc nhóm đông người.`,
+    `Có xu hướng ôm đồm nhiều đầu việc học vụ, dẫn đến thỉnh thoảng bị áp lực tiến độ.`
   ];
 
-  let jobTitle = 'Chuyên viên Phát triển Bản thân';
-  let jobDesc = 'Học sinh sở hữu năng lực tự học cao cùng tinh thần thích ứng tốt, thích hợp làm việc trong môi trường năng động, đổi mới sáng tạo.';
-  let matchPercentage = 88;
+  const improvementsList = [
+    `Cần phân bổ thời gian cân bằng hơn giữa học tập kiến thức và rèn luyện thể chất/kỹ năng mềm.`,
+    `Chủ động rèn luyện tư duy phản biện và khả năng nói trước công chúng thông qua các hoạt động ngoại khóa.`
+  ];
 
-  const mainInterest = survey.q9_fieldsOfStudy?.[0] || '';
+  let mainInterest = survey.q9_fieldsOfStudy?.[0] || 'Phát triển chuyên môn';
+  let mainRole = survey.q3_teamRole || 'supporter';
+
+  let defaultCareers: any[] = [];
   if (mainInterest.match(/(khoa học|máy tính|it|lập trình|ai|tin học|công nghệ)/i)) {
-    jobTitle = 'Kỹ sư Phần mềm & Giải pháp Trí tuệ Nhân tạo';
-    jobDesc = 'Nghiên cứu và viết các giải pháp phần mềm, xử lý thuật toán tối ưu hỗ trợ đời sống, phù hợp với tư duy logic sắc sảo của em.';
-    matchPercentage = 93;
+    defaultCareers = [
+      { title: 'Nhóm ngành Kỹ thuật Phần mềm & Trí tuệ Nhân tạo', description: 'Nghiên cứu thuật toán, lập trình phần mềm thông minh để nâng cao hiệu suất cuộc sống.', matchPercentage: 94 },
+      { title: 'Nhóm ngành Khoa học Dữ liệu & Phân tích Kinh doanh', description: 'Khai phá dữ liệu lớn, chuyển đổi thông tin thành báo cáo chiến lược doanh nghiệp.', matchPercentage: 90 },
+      { title: 'Nhóm ngành Kỹ thuật Robot & Tự động hóa', description: 'Tích hợp cảm biến, phần cứng điều khiển hoạt động chính xác của dây chuyền robot.', matchPercentage: 86 },
+      { title: 'Nhóm ngành An toàn Thông tin & Quản trị Mạng', description: 'Bảo mật hệ thống, giám sát và bảo vệ hạ tầng dữ liệu số khỏi các mối đe dọa.', matchPercentage: 82 },
+      { title: 'Nhóm ngành Quản lý Dự án Công nghệ (Tech PM)', description: 'Điều phối nhân lực phát triển phần mềm, làm cầu nối giải pháp kỹ thuật với khách hàng.', matchPercentage: 78 }
+    ];
   } else if (mainInterest.match(/(truyền thông|quảng cáo|pr|sự kiện|mỹ thuật|vẽ|đồ họa|thiết kế)/i)) {
-    jobTitle = 'Chuyên gia Thiết kế Truyền thông & Sáng tạo Nội dung';
-    jobDesc = 'Thiết kế các ấn phẩm hình ảnh và tổ chức các chiến dịch truyền thông đa phương tiện sáng tạo, phát huy tối đa gu thẩm mỹ và kỹ năng giao tiếp.';
-    matchPercentage = 91;
-  } else if (mainInterest.match(/(tâm lý|giáo dục|quản trị|kinh doanh|y tế)/i)) {
-    jobTitle = 'Chuyên viên Tư vấn Tâm lý / Quản trị Nhân sự';
-    jobDesc = 'Lắng nghe, thấu cảm và hỗ trợ điều phối nhân sự, giúp đỡ cộng đồng và kết nối con người nâng cao năng suất xã hội.';
-    matchPercentage = 89;
+    defaultCareers = [
+      { title: 'Nhóm ngành Truyền thông Đa phương tiện & Quan hệ Công chúng', description: 'Sáng tạo chiến dịch truyền thông đa nền tảng, gắn kết thương hiệu với xã hội.', matchPercentage: 92 },
+      { title: 'Nhóm ngành Thiết kế Đồ họa & Trải nghiệm Người dùng (UI/UX)', description: 'Tạo dựng giao diện trực quan tinh tế và luồng trải nghiệm mượt mà trên ứng dụng di động.', matchPercentage: 89 },
+      { title: 'Nhóm ngành Sản xuất Nội dung Số & Truyền hình', description: 'Biên tập, sản xuất video, kịch bản sáng tạo cho các kênh giải trí, giáo dục và tin tức.', matchPercentage: 85 },
+      { title: 'Nhóm ngành Quản trị Sự kiện & Tiếp thị Trải nghiệm', description: 'Quản lý, tổ chức các hội thảo, triển lãm và chương trình nghệ thuật chuyên nghiệp.', matchPercentage: 82 },
+      { title: 'Nhóm ngành Mỹ thuật Công nghiệp & Thời trang', description: 'Tạo tác kiểu dáng sản phẩm tiêu dùng hoặc trang phục nghệ thuật có tính ứng dụng cao.', matchPercentage: 77 }
+    ];
+  } else {
+    defaultCareers = [
+      { title: 'Nhóm ngành Tư vấn Tâm lý & Giáo dục Học đường', description: 'Lắng nghe, thấu cảm và hướng nghiệp nâng đỡ tinh thần cho thế hệ trẻ học đường.', matchPercentage: 90 },
+      { title: 'Nhóm ngành Quản trị Nhân sự & Đào tạo Doanh nghiệp', description: 'Đào tạo nội bộ, quản lý tài năng và kiến tạo môi trường làm việc hạnh phúc.', matchPercentage: 86 },
+      { title: 'Nhóm ngành Marketing & Nghiên cứu Hành vi Người dùng', description: 'Phân tích xu hướng thị trường, thiết kế chiến lược định vị thương hiệu thành công.', matchPercentage: 83 },
+      { title: 'Nhóm ngành Quản trị Kinh doanh & Khởi nghiệp', description: 'Lập kế hoạch tài chính, vận hành tối ưu hệ thống kinh doanh và phát triển đối tác.', matchPercentage: 80 },
+      { title: 'Nhóm ngành Dịch vụ Khách hàng & Quan hệ Ngoại giao', description: 'Dẫn dắt các mối quan hệ đối tác quốc tế, thương thảo và giải quyết xung đột hiệu quả.', matchPercentage: 75 }
+    ];
   }
 
   const adviceList = [
     `Tích cực lập kế hoạch hành động cụ thể để hoàn thiện khía cạnh "${survey.q7_improvements?.[0] || 'Kỹ năng trình bày trước đám đông'}" trong 12 tháng tới.`,
     `Chủ động đăng ký tham gia ít nhất 1 câu lạc bộ học đường để nâng cao tinh thần làm việc nhóm phối hợp.`,
-    `Tìm kiếm các tài liệu, sách hướng nghiệp liên quan trực tiếp đến lĩnh vực "${jobTitle}" để xây dựng lộ trình rèn luyện đúng hướng.`
+    `Tìm kiếm các tài liệu, sách hướng nghiệp liên quan trực tiếp đến lĩnh vực "${defaultCareers[0]?.title}" để xây dựng lộ trình rèn luyện đúng hướng.`
   ];
 
   return {
     strengths: strengthsList,
+    weaknesses: weaknessesList,
     improvements: improvementsList,
-    futureVision: {
-      title: jobTitle,
-      description: jobDesc,
-      matchPercentage: matchPercentage
+    futureVision: defaultCareers[0] || {
+      title: 'Chuyên gia Phát triển Toàn diện',
+      description: 'Học sinh sở hữu năng lực tự học cao cùng tinh thần thích ứng tốt, thích hợp làm việc trong môi trường năng động.',
+      matchPercentage: 88
     },
+    suitableCareers: defaultCareers,
     advice: adviceList,
     competencies: baseCompetencies
   };

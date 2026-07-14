@@ -191,9 +191,56 @@ const rawMockStudents = [
 export const mockStudents: StudentReport[] = rawMockStudents.map(s => {
   const normalizedScores = normalizeAndMergeSubjectScores(s.academicScores as any);
   const calculatedComp = calculateCompetencies(normalizedScores, s.experientialActivities, s.survey);
+  
+  let weaknessesList = [
+    'Đôi khi còn quá cầu toàn trong từng chi tiết, có thể ảnh hưởng đến tiến độ chung.',
+    'Chưa phân bổ thời gian thực sự tối ưu giữa học tập chuyên sâu và tham gia các hoạt động phát triển kỹ năng mềm.'
+  ];
+  
+  let suitableCareersList: any[] = [];
+  if (s.id === 'HS001') {
+    weaknessesList = [
+      'Còn rụt rè, e ngại khi phải trình bày ý tưởng công nghệ phức tạp trước đám đông.',
+      'Dễ bị cuốn vào chi tiết kỹ thuật chuyên sâu mà quên đi bức tranh toàn cảnh của dự án.'
+    ];
+    suitableCareersList = [
+      { title: 'Nhóm ngành Trí tuệ Nhân tạo & Khoa học Dữ liệu', description: 'Nghiên cứu phát triển thuật toán AI, học máy và phân tích dữ liệu lớn phục vụ cộng đồng.', matchPercentage: 94 },
+      { title: 'Nhóm ngành Phát triển Phần mềm & Kỹ nghệ Hệ thống', description: 'Lập trình ứng dụng đa nền tảng, thiết kế kiến trúc hệ thống mạng và giải pháp đám mây.', matchPercentage: 91 },
+      { title: 'Nhóm ngành Kỹ thuật Robot & Hệ thống Nhúng', description: 'Thiết kế, tích hợp phần cứng và phần mềm điều khiển tự động hóa cho các robot thông minh.', matchPercentage: 88 },
+      { title: 'Nhóm ngành Quản lý Dự án Công nghệ (Tech Product Owner)', description: 'Điều phối tiến độ, kết nối kỹ thuật với nhu cầu thực tế của người dùng để phát triển sản phẩm.', matchPercentage: 85 },
+      { title: 'Nhóm ngành Nghiên cứu Khoa học Máy tính & Giảng dạy', description: 'Nghiên cứu học thuật chuyên sâu tại các viện công nghệ hoặc giảng dạy CNTT thế hệ mới.', matchPercentage: 80 }
+    ];
+  } else if (s.id === 'HS002') {
+    weaknessesList = [
+      'Gặp khó khăn khi giải quyết các vấn đề liên quan đến phân tích số liệu tài chính chi tiết.',
+      'Dễ rơi vào trạng thái ôm đồm công việc khi làm leader thay vì phân quyền sâu cho đồng đội.'
+    ];
+    suitableCareersList = [
+      { title: 'Nhóm ngành Truyền thông Đa phương tiện & Quan hệ Công chúng (PR)', description: 'Sáng tạo chiến dịch truyền thông xã hội, xây dựng hình ảnh và kết nối thương hiệu với công chúng.', matchPercentage: 92 },
+      { title: 'Nhóm ngành Tổ chức Sự kiện & Sản xuất Chương trình', description: 'Quản lý, vận hành và lên kịch bản cho các lễ hội, giải đấu thể thao, sự kiện văn hóa nghệ thuật.', matchPercentage: 90 },
+      { title: 'Nhóm ngành Quản trị Nhân sự & Đào tạo Nội bộ', description: 'Tuyển dụng, kết nối nhân sự và xây dựng văn hóa doanh nghiệp năng động, gắn kết.', matchPercentage: 86 },
+      { title: 'Nhóm ngành Marketing & Phát triển Thương hiệu', description: 'Nghiên cứu thị trường, lập chiến lược quảng bá sản phẩm và phân tích hành vi người tiêu dùng.', matchPercentage: 83 },
+      { title: 'Nhóm ngành Tư vấn Khách hàng & Quan hệ Đối tác', description: 'Làm việc trực tiếp với đối tác, đàm phán hợp tác thương mại và phát triển dự án kinh doanh.', matchPercentage: 79 }
+    ];
+  } else {
+    weaknessesList = [
+      'Có xu hướng giữ áp lực cá nhân một mình, e ngại phản biện bảo vệ quan điểm riêng trước đám đông.',
+      'Khá nhạy cảm trước những phản hồi trái chiều về sản phẩm sáng tạo của mình.'
+    ];
+    suitableCareersList = [
+      { title: 'Nhóm ngành Thiết kế Đồ họa & Thiết kế Thương hiệu', description: 'Sáng tạo bộ nhận diện hình ảnh, thiết kế bao bì sản phẩm và ấn phẩm truyền thông số.', matchPercentage: 95 },
+      { title: 'Nhóm ngành Họa sĩ Minh họa & Sáng tác Truyện tranh', description: 'Thể hiện ý tưởng, thông điệp cuộc sống qua những tác phẩm hội họa, minh họa sách báo, tạp chí.', matchPercentage: 92 },
+      { title: 'Nhóm ngành Thiết kế Giao diện Người dùng (UI/UX Design)', description: 'Thiết kế bố cục trực quan, thẩm mỹ và trải nghiệm tương tác trên các ứng dụng di động, website.', matchPercentage: 87 },
+      { title: 'Nhóm ngành Trị liệu Nghệ thuật & Tâm lý học đường', description: 'Sử dụng hội họa, âm nhạc để hỗ trợ tinh thần, chữa lành và tư vấn phát triển tâm lý trẻ em.', matchPercentage: 84 },
+      { title: 'Nhóm ngành Thiết kế Mỹ thuật Công nghiệp & Thời trang', description: 'Thiết kế kiểu dáng sản phẩm gia dụng, trang phục hoặc nội thất giàu tính ứng dụng và nghệ thuật.', matchPercentage: 80 }
+    ];
+  }
+
   return {
     ...s,
     academicScores: normalizedScores,
-    competencies: calculatedComp
-  };
+    competencies: calculatedComp,
+    weaknesses: weaknessesList,
+    suitableCareers: suitableCareersList
+  } as StudentReport;
 });

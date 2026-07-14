@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, Search, Filter, Download, Plus, Trash2, Eye, X, BookOpen, 
@@ -12,6 +12,8 @@ import * as XLSX from 'xlsx';
 import { StudentReport } from '../types';
 import A4PortraitPreview from './A4PortraitPreview';
 import { parseExperientialPdf, generateAIPortrait } from '../utils/geminiClient';
+import { db } from '../firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 interface TeacherDashboardProps {
   students: StudentReport[];
@@ -20,13 +22,41 @@ interface TeacherDashboardProps {
 }
 
 export default function TeacherDashboard({ students, onUpdateStudents, onBackToRoleSelection }: TeacherDashboardProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('teacher_logged_in') === 'true');
+  // Initialize to true since they already entered the password on the RoleSelection screen!
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
 
+  // Online student portraits state from Firebase
+  const [onlinePortraits, setOnlinePortraits] = useState<any[]>([]);
+  const [isLoadingPortraits, setIsLoadingPortraits] = useState(false);
+  const [activeDashboardTab, setActiveDashboardTab] = useState<'roster' | 'online_submissions'>('roster');
+
+  useEffect(() => {
+    const loadOnlinePortraits = async () => {
+      setIsLoadingPortraits(true);
+      try {
+        const q = query(collection(db, "student_portraits"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setOnlinePortraits(data);
+      } catch (err) {
+        console.error("Lỗi khi tải chân dung từ Firebase student_portraits:", err);
+      } finally {
+        setIsLoadingPortraits(false);
+      }
+    };
+    if (isAuthenticated) {
+      loadOnlinePortraits();
+    }
+  }, [isAuthenticated, students]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === 'giaovien123') {
+    if (passwordInput === 'giaovien2026' || passwordInput === 'giaovien123') {
       setIsAuthenticated(true);
       sessionStorage.setItem('teacher_logged_in', 'true');
       setLoginError('');
@@ -313,8 +343,10 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
         { id: 'physical', name: 'Thể chất & Thích ứng', score: 70, level: 'Khá', description: 'Đang cập nhật đánh giá' }
       ],
       strengths: ['Sẵn sàng tiếp thu kiến thức và chủ động hỗ trợ bạn bè.'],
+      weaknesses: ['Chưa bộc lộ nhiều điểm hạn chế, cần phân tích qua khảo sát.'],
       improvements: ['Cần rèn luyện tính chủ động trao đổi và thảo luận nhiều hơn.'],
       futureVision: { title: 'Đang cập nhật', description: 'Cần hoàn thiện khảo sát phản tư sâu.', matchPercentage: 80 },
+      suitableCareers: [],
       advice: ['Cố gắng hoàn thành 10 câu hỏi khảo sát để AI tổng hợp chân dung chuyên nghiệp.'],
       isPortraitGenerated: false,
       createdAt: new Date().toISOString()
@@ -453,6 +485,14 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
     );
   }
 
+  const formatSubmissionDate = (createdAt: any) => {
+    if (!createdAt) return 'Ngoại tuyến';
+    if (typeof createdAt.toDate === 'function') {
+      return createdAt.toDate().toLocaleString('vi-VN');
+    }
+    return new Date(createdAt).toLocaleString('vi-VN');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
       
@@ -570,129 +610,264 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
         {/* Right Column: Students Card Grid */}
         <div className="lg:col-span-7 space-y-6">
           
-          {/* Controls Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap gap-4 items-center justify-between shadow-sm">
-            
-            {/* Search Input */}
-            <div className="relative flex-1 min-w-[240px]">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm học sinh theo tên hoặc MSHS..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-orange-500 focus:outline-none transition-all placeholder-slate-400"
-              />
-            </div>
-
-            {/* Filter class select */}
-            <div className="flex items-center gap-2">
-              <Filter className="text-slate-400 w-3.5 h-3.5 shrink-0" />
-              <select
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none"
-              >
-                {classes.map(c => (
-                  <option key={c} value={c}>
-                    {c === 'ALL' ? 'Tất cả các lớp' : `Lớp ${c}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+          {/* Dashboard Tabs Selector */}
+          <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/60 shadow-inner">
+            <button
+              onClick={() => setActiveDashboardTab('roster')}
+              className={`flex-1 py-2.5 text-center text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeDashboardTab === 'roster' 
+                  ? 'bg-white text-slate-900 shadow-md border-b-2 border-orange-500' 
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              📊 Quản lý Lớp học ({students.length})
+            </button>
+            <button
+              onClick={() => setActiveDashboardTab('online_submissions')}
+              className={`flex-1 py-2.5 text-center text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                activeDashboardTab === 'online_submissions' 
+                  ? 'bg-white text-slate-900 shadow-md border-b-2 border-orange-500' 
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+              <span>Nộp Bài Trực Tuyến ({onlinePortraits.length})</span>
+            </button>
           </div>
 
-          {/* Student list Roster Grid */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map((student, idx) => {
-                // Find top calculated competency
-                const topComp = [...student.competencies].sort((a, b) => b.score - a.score)[0];
-                return (
-                  <motion.div
-                    key={student.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="bg-white rounded-3xl border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md hover:border-orange-500/25 transition-all relative overflow-hidden group"
+          {activeDashboardTab === 'roster' ? (
+            <>
+              {/* Controls Bar */}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap gap-4 items-center justify-between shadow-sm">
+                
+                {/* Search Input */}
+                <div className="relative flex-1 min-w-[240px]">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm học sinh theo tên hoặc MSHS..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-orange-500 focus:outline-none transition-all placeholder-slate-400"
+                  />
+                </div>
+
+                {/* Filter class select */}
+                <div className="flex items-center gap-2">
+                  <Filter className="text-slate-400 w-3.5 h-3.5 shrink-0" />
+                  <select
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                    className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none"
                   >
-                    
-                    {/* Top basic card layout */}
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-inner">
-                            {student.profile.avatar ? (
-                              <img src={student.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                <Users className="w-5 h-5" />
+                    {classes.map(c => (
+                      <option key={c} value={c}>
+                        {c === 'ALL' ? 'Tất cả các lớp' : `Lớp ${c}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+              </div>
+
+              {/* Student list Roster Grid */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                {filteredStudents.length > 0 ? (
+                  filteredStudents.map((student, idx) => {
+                    // Find top calculated competency
+                    const topComp = [...student.competencies].sort((a, b) => b.score - a.score)[0];
+                    return (
+                      <motion.div
+                        key={student.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="bg-white rounded-3xl border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md hover:border-orange-500/25 transition-all relative overflow-hidden group"
+                      >
+                        
+                        {/* Top basic card layout */}
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-inner">
+                                {student.profile.avatar ? (
+                                  <img src={student.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                    <Users className="w-5 h-5" />
+                                  </div>
+                                )}
                               </div>
-                            )}
+                              <div>
+                                <span className="text-[9px] font-black font-mono text-slate-400 block">{student.id}</span>
+                                <h4 className="font-extrabold text-slate-800 text-xs leading-snug tracking-wide group-hover:text-orange-600 transition-all">
+                                  {student.profile.name}
+                                </h4>
+                                <span className="text-[9px] font-bold text-slate-500">Lớp: {student.profile.class}</span>
+                              </div>
+                            </div>
+
+                            {/* Approved Badge */}
+                            <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                              student.isPortraitGenerated 
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/50' 
+                                : 'bg-amber-50 text-amber-700 border border-amber-100/50'
+                            }`}>
+                              {student.isPortraitGenerated ? 'Đã phản tư' : 'Nháp'}
+                            </span>
                           </div>
-                          <div>
-                            <span className="text-[9px] font-black font-mono text-slate-400 block">{student.id}</span>
-                            <h4 className="font-extrabold text-slate-800 text-xs leading-snug tracking-wide group-hover:text-orange-600 transition-all">
-                              {student.profile.name}
-                            </h4>
-                            <span className="text-[9px] font-bold text-slate-500">Lớp: {student.profile.class}</span>
+
+                          {/* Small competencies overview line */}
+                          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1 text-[10px] leading-relaxed">
+                            <div className="flex justify-between text-slate-500 font-bold">
+                              <span>Năng lực nổi bật nhất:</span>
+                              <span className="font-black text-orange-600">{topComp?.name || 'Đang tính toán'}</span>
+                            </div>
+                            <div className="flex justify-between text-slate-500 font-bold">
+                              <span>Mục tiêu tương thích:</span>
+                              <span className="font-black text-slate-800 truncate max-w-[130px]" title={student.futureVision.title}>
+                                {student.futureVision.title || 'Chưa cập nhật'}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Approved Badge */}
-                        <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                          student.isPortraitGenerated 
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/50' 
-                            : 'bg-amber-50 text-amber-700 border border-amber-100/50'
-                        }`}>
-                          {student.isPortraitGenerated ? 'Đã phản tư' : 'Nháp'}
+                        {/* Card Actions buttons block */}
+                        <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100">
+                          <button
+                            onClick={() => setViewingReport(student)}
+                            className="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Xem chân dung A4</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => handleDeleteStudent(student.id, student.profile.name)}
+                            className="py-1.5 hover:bg-red-50 text-slate-400 hover:text-red-600 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-all border border-transparent hover:border-red-100"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Xóa học sinh</span>
+                          </button>
+                        </div>
+
+                      </motion.div>
+                    );
+                  })
+                ) : (
+                  <div className="col-span-2 text-center py-12 bg-white rounded-3xl border border-dashed border-slate-200">
+                    <p className="text-xs text-slate-400 font-semibold italic">Không tìm thấy kết quả học sinh phù hợp!</p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="space-y-6">
+              {/* Controls Bar for Submissions */}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap gap-4 items-center justify-between shadow-sm">
+                <div className="relative flex-1 min-w-[240px]">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Tìm theo tên học sinh nộp bài..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-orange-500 focus:outline-none transition-all placeholder-slate-400"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Filter className="text-slate-400 w-3.5 h-3.5 shrink-0" />
+                  <select
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                    className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none"
+                  >
+                    {classes.map(c => (
+                      <option key={c} value={c}>
+                        {c === 'ALL' ? 'Tất cả các lớp' : `Lớp ${c}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {isLoadingPortraits ? (
+                <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                  <p className="text-xs font-bold text-slate-500">Đang đồng bộ hồ sơ học sinh trực tuyến từ Firestore...</p>
+                </div>
+              ) : onlinePortraits.filter(p => {
+                const matchesSearch = (p.fullName || '').toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesClass = selectedClass === 'ALL' || (p.className || '') === selectedClass;
+                return matchesSearch && matchesClass;
+              }).length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm">
+                  <p className="text-xs text-slate-400 font-bold italic">Chưa có học sinh nào nộp hồ sơ phản tư trực tuyến.</p>
+                </div>
+              ) : (
+                <div className="grid gap-6">
+                  {onlinePortraits.filter(p => {
+                    const matchesSearch = (p.fullName || '').toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesClass = selectedClass === 'ALL' || (p.className || '') === selectedClass;
+                    return matchesSearch && matchesClass;
+                  }).map((student, idx) => (
+                    <motion.div
+                      key={student.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all space-y-4"
+                    >
+                      <div className="flex flex-wrap justify-between items-center border-b border-slate-100 pb-3 gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                          <h3 className="text-sm font-black text-slate-800">
+                            Học sinh: <span className="text-orange-600">{student.fullName}</span> {student.className ? `(Lớp: ${student.className})` : ''}
+                          </h3>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-400 font-mono">
+                          Nộp bài: {formatSubmissionDate(student.createdAt)}
                         </span>
                       </div>
-
-                      {/* Small competencies overview line */}
-                      <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1 text-[10px] leading-relaxed">
-                        <div className="flex justify-between text-slate-500 font-bold">
-                          <span>Năng lực nổi bật nhất:</span>
-                          <span className="font-black text-orange-600">{topComp?.name || 'Đang tính toán'}</span>
+                      
+                      <div className="grid md:grid-cols-2 gap-4 text-xs leading-relaxed">
+                        {/* SWOT Analysis */}
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+                          <h4 className="font-black text-slate-800 flex items-center gap-1.5 uppercase text-[10px] tracking-wider border-b pb-1.5">
+                            🧠 Đánh giá năng lực của AI
+                          </h4>
+                          <div className="space-y-1.5">
+                            <p className="text-slate-600 text-xs">
+                              <strong className="text-slate-800">Điểm mạnh:</strong> {student.aiEvaluation?.strengths || "Chưa có dữ liệu"}
+                            </p>
+                            <p className="text-slate-600 text-xs">
+                              <strong className="text-slate-800">Cần cải thiện:</strong> {student.aiEvaluation?.improvements || "Chưa có dữ liệu"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-slate-500 font-bold">
-                          <span>Mục tiêu tương thích:</span>
-                          <span className="font-black text-slate-800 truncate max-w-[130px]" title={student.futureVision.title}>
-                            {student.futureVision.title || 'Chưa cập nhật'}
-                          </span>
+                        
+                        {/* Careers suggestions */}
+                        <div className="bg-orange-50/45 p-4 rounded-2xl border border-orange-100/50 space-y-3">
+                          <h4 className="font-black text-orange-800 flex items-center gap-1.5 uppercase text-[10px] tracking-wider border-b border-orange-100 pb-1.5">
+                            💼 Top 5 ngành nghề đề xuất
+                          </h4>
+                          <ul className="space-y-1">
+                            {student.aiEvaluation?.careers?.map((career: string, cIdx: number) => (
+                              <li key={cIdx} className="text-xs text-orange-950 font-bold flex items-start gap-1.5">
+                                <span className="text-orange-500 shrink-0 select-none">•</span>
+                                <span>{career}</span>
+                              </li>
+                            )) || <li className="text-xs text-slate-500 italic">Chưa phân tích nghề nghiệp</li>}
+                          </ul>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Card Actions buttons block */}
-                    <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100">
-                      <button
-                        onClick={() => setViewingReport(student)}
-                        className="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Xem chân dung A4</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => handleDeleteStudent(student.id, student.profile.name)}
-                        className="py-1.5 hover:bg-red-50 text-slate-400 hover:text-red-600 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-all border border-transparent hover:border-red-100"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Xóa học sinh</span>
-                      </button>
-                    </div>
-
-                  </motion.div>
-                );
-              })
-            ) : (
-              <div className="col-span-2 text-center py-12 bg-white rounded-3xl border border-dashed border-slate-200">
-                <p className="text-xs text-slate-400 font-semibold italic">Không tìm thấy kết quả học sinh phù hợp!</p>
-              </div>
-            )}
-          </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </main>
