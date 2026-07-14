@@ -1,0 +1,8 @@
+{
+  "name": "Hồ Sơ Chân Dung & Định Hướng Học Sinh",
+  "description": "Hệ thống trực quan hóa 6 nhóm năng lực, định hướng học tập và nghề nghiệp, khảo sát tự phản tư và quản lý hồ sơ học sinh bằng AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
