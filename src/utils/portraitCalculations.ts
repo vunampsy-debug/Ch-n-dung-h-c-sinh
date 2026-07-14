@@ -11,7 +11,19 @@ export function calculateCompetencies(
       names.some(name => s.subjectName.toLowerCase().includes(name.toLowerCase()))
     );
     if (matches.length === 0) return 70; // default average
-    return matches.reduce((sum, s) => sum + s.currentScore * 10, 0) / matches.length; // convert to 100 scale
+    
+    const validScores = matches
+      .filter(s => s.scoreType === 'numeric' || s.scoreType === 'pass_fail')
+      .map(s => {
+        if (s.scoreType === 'numeric') {
+          return (s.score !== null && s.score !== undefined) ? s.score : (s.currentScore || 7.0);
+        } else {
+          return s.assessmentResult === 'Đạt' ? 8.5 : 4.0;
+        }
+      });
+
+    if (validScores.length === 0) return 70;
+    return (validScores.reduce((sum, val) => sum + val, 0) / validScores.length) * 10; // convert to 100 scale
   };
 
   const getExpValue = (nameKeywords: string[]): number => {
@@ -25,11 +37,15 @@ export function calculateCompetencies(
   // 1. Năng lực Tự chủ & Tự học
   // Affected by target settings vs current performance, and self-reflection responses.
   let selfLearning = 70;
-  const avgAcademic = academicScores.length > 0 
-    ? (academicScores.reduce((sum, s) => sum + s.currentScore, 0) / academicScores.length) * 10 
+  const activeScores = academicScores.filter(s => s.scoreType === 'numeric' || s.scoreType === 'pass_fail');
+  const avgAcademic = activeScores.length > 0 
+    ? (activeScores.reduce((sum, s) => {
+        if (s.scoreType === 'numeric') return sum + ((s.score !== null && s.score !== undefined) ? s.score : (s.currentScore || 0));
+        return sum + (s.assessmentResult === 'Đạt' ? 8.5 : 4.0);
+      }, 0) / activeScores.length) * 10 
     : 72;
-  const avgTarget = academicScores.length > 0
-    ? (academicScores.reduce((sum, s) => sum + s.targetScore, 0) / academicScores.length) * 10
+  const avgTarget = activeScores.length > 0
+    ? (activeScores.reduce((sum, s) => sum + (s.targetScore || (s.scoreType === 'numeric' ? ((s.score !== null && s.score !== undefined) ? s.score : 7.0) : 8.0)), 0) / activeScores.length) * 10
     : 85;
   const motivationBonus = Math.max(0, avgTarget - avgAcademic) * 0.5; // ambitious goals
   const studyHobbyBonus = survey.q2_favoriteSubjects.length * 4;

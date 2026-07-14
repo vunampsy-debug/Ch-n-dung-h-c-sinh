@@ -210,13 +210,21 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
                     <div key={idx} className="flex justify-between items-center py-0.5 border-b border-slate-50">
                       <span className="font-bold text-slate-600 truncate w-20">{normalizeSubjectName(score.subjectName)}</span>
                       <div className="flex items-center gap-1.5 font-mono">
-                        <span className="font-extrabold text-slate-800">{score.currentScore}</span>
-                        {score.trend === 'up' ? (
-                          <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
-                        ) : score.trend === 'down' ? (
-                          <TrendingDown className="w-2.5 h-2.5 text-rose-500" />
-                        ) : (
-                          <Minus className="w-2.5 h-2.5 text-slate-400" />
+                        <span className="font-extrabold text-slate-800">
+                          {score.scoreType === 'numeric'
+                            ? (score.score !== null && score.score !== undefined ? score.score.toFixed(1) : (score.currentScore !== undefined ? score.currentScore.toFixed(1) : ''))
+                            : score.scoreType === 'pass_fail'
+                            ? score.assessmentResult || 'Đạt'
+                            : 'Chưa có'}
+                        </span>
+                        {score.scoreType === 'numeric' && (
+                          score.trend === 'up' ? (
+                            <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
+                          ) : score.trend === 'down' ? (
+                            <TrendingDown className="w-2.5 h-2.5 text-rose-500" />
+                          ) : (
+                            <Minus className="w-2.5 h-2.5 text-slate-400" />
+                          )
                         )}
                       </div>
                     </div>

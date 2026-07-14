@@ -11,6 +11,20 @@ export interface StudentProfile {
 
 export interface SubjectScore {
   subjectName: string;
+  originalSubjectName?: string | null;
+  scoreType?: 'numeric' | 'pass_fail' | 'not_available' | null;
+  score?: number | null;
+  assessmentResult?: 'Đạt' | 'Chưa đạt' | null;
+  interestLevel?: number | null; // 1 to 5
+  source?: 'manual' | 'slider' | 'pasted_text' | 'pdf' | null;
+  sourceColumn?: string | null;
+  sourceOrder?: number | null;
+  updatedAt?: string | null;
+  confidence?: number | null;
+  status?: 'valid' | 'invalid' | 'needs_review' | null;
+  reason?: string | null;
+
+  // Backward compatibility fields
   currentScore: number;
   targetScore: number;
   trend: 'up' | 'down' | 'stable';
