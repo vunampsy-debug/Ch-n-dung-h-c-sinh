@@ -1,212 +1,396 @@
+import { SubjectScore } from '../types';
+
 /**
- * Normalize Vietnamese school subject names according to the requested guidelines:
- * 1. Map variations to standard names like "Toán", "Ngữ văn", "Tiếng Anh", "Vật lí", "Địa lí", "Mỹ thuật", "Hóa học", "Sinh học", "Tin học", "Lịch sử".
- * 2. Unify variations into standard form to ensure no duplicates.
+ * Normalizes assessment results for FSchool special subjects.
+ * Mapped to standard results: 'Đạt' or 'Không đạt'
+ */
+export function normalizeAssessmentResult(val: any): 'Đạt' | 'Không đạt' | null {
+  if (val === null || val === undefined) return null;
+  const str = String(val).trim().toLowerCase();
+  if (!str) return null;
+
+  const passStrings = ['đ', 'đạt', 'dat', 'd', 'pass', 'hoàn thành', 'ht', 'đạt yêu cầu', 'dat yeu cau', 'hoan thanh'];
+  const failStrings = ['kđ', 'kd', 'không đạt', 'khong dat', 'cđ', 'cd', 'chưa đạt', 'chua dat', 'fail', 'chưa hoàn thành', 'cht', 'không đạt yêu cầu', 'khong dat yeu cau', 'chua hoan thanh'];
+
+  if (passStrings.includes(str)) return 'Đạt';
+  if (failStrings.includes(str)) return 'Không đạt';
+
+  // Fallback for numbers
+  const parsedNum = parseFloat(str);
+  if (!isNaN(parsedNum)) {
+    return parsedNum >= 5 ? 'Đạt' : 'Không đạt';
+  }
+
+  return null;
+}
+
+/**
+ * Normalize Vietnamese school subject names according to FSchool guidelines:
+ * 1. Standard subjects: "Toán", "Ngữ văn", "Tiếng Anh", "Vật lí", "Địa lí", "Mỹ thuật", "Hóa học", "Sinh học", "Tin học", "Lịch sử", etc.
+ * 2. FSchool Special subjects:
+ *    - "Vovinam"
+ *    - "PDP" (unifying Wellbeing, Project, Skills, Thinking, etc.)
+ *    - "STEM-AI" (unifying STEM-AI variants, keeping pure STEM as STEM)
  */
 export function normalizeSubjectName(name: string): string {
   if (!name) return '';
   const clean = name.trim();
-  const lower = clean.toLowerCase()
-    .replace(/\s+/g, ' ')
-    .replace(/[.,\-_]/g, '');
+  const lower = clean.toLowerCase().replace(/\s+/g, ' ').trim();
+  
+  // 1. VOVINAM
+  const isVovinam = 
+    lower === 'vvn' ||
+    lower.includes('vovinam') ||
+    lower.includes('việt võ đạo') ||
+    lower.includes('viet vo dao') ||
+    lower.includes('việt võ dạo') ||
+    lower.includes('viet vo dạo') ||
+    lower.includes('võ thuật') ||
+    lower.includes('vo thuat');
+  if (isVovinam) {
+    return 'Vovinam';
+  }
 
-  // Explicit mappings for common school subjects as per standard list
-  if (lower === 'toán học' || lower === 'toan hoc' || lower === 'toán' || lower === 'toan' || lower === 'math' || lower === 'maths' || lower === 'mathematics') {
+  // 2. STEM-AI
+  // Note: Do NOT match plain 'STEM' or 'STEAM' to 'STEM-AI'
+  const isStemAi = 
+    (lower.includes('stem') && (lower.includes('ai') || lower.includes('trí tuệ nhân tạo') || lower.includes('tri tue nhan tao'))) ||
+    (lower.includes('steam') && (lower.includes('ai') || lower.includes('trí tuệ nhân tạo') || lower.includes('tri tue nhan tao')));
+  if (isStemAi && lower !== 'stem' && lower !== 'steam') {
+    return 'STEM-AI';
+  }
+
+  // 3. PDP
+  // Check Wellbeing Group
+  const isWellbeing = 
+    lower.includes('wellbeing') ||
+    lower.includes('well-being') ||
+    lower.includes('well being') ||
+    lower.includes('sức khỏe và hạnh phúc') ||
+    lower.includes('suc khoe va hanh phuc') ||
+    lower.includes('sức khỏe tinh thần') ||
+    lower.includes('suc khoe tinh than') ||
+    lower.includes('chăm sóc sức khỏe') ||
+    lower.includes('cham soc suc khoe') ||
+    lower === 'wb';
+
+  // Check Project Group
+  const isProject = 
+    lower.includes('project') ||
+    lower.includes('dự án') ||
+    lower.includes('du an') ||
+    lower.includes('pbl') ||
+    lower.includes('project-based') ||
+    lower.includes('project based');
+
+  // Check Soft & Life Skills Group
+  const isSkills = 
+    lower.includes('kỹ năng') ||
+    lower.includes('kĩ năng') ||
+    lower.includes('ky nang') ||
+    lower.includes('ki nang') ||
+    lower.includes('soft skill') ||
+    lower.includes('life skill') ||
+    lower.includes('teamwork') ||
+    lower.includes('leadership');
+
+  // Check Thinking Group
+  const isThinking = 
+    lower.includes('tư duy') ||
+    lower.includes('tu duy') ||
+    lower.includes('thinking');
+
+  // Check Personal Development Group
+  const isPersonalDev = 
+    lower.includes('pdp') ||
+    lower.includes('phát triển cá nhân') ||
+    lower.includes('phat trien ca nhan') ||
+    lower.includes('personal development');
+
+  if (isWellbeing || isProject || isSkills || isThinking || isPersonalDev) {
+    return 'PDP';
+  }
+
+  // Standard subject names mapping (lowercase without punctuation)
+  const cleanLower = lower.replace(/[.,\-_]/g, '').trim();
+
+  if (cleanLower === 'toán học' || cleanLower === 'toan hoc' || cleanLower === 'toán' || cleanLower === 'toan' || cleanLower === 'math' || cleanLower === 'maths' || cleanLower === 'mathematics') {
     return 'Toán';
   }
   if (
-    lower === 'văn' || 
-    lower === 'van' || 
-    lower === 'văn học' || 
-    lower === 'van hoc' || 
-    lower === 'ngữ văn' || 
-    lower === 'ngu van' || 
-    lower === 'ngu van hoc' || 
-    lower === 'ngữ văn học' || 
-    lower === 'literature' || 
-    lower === 'vietnamese literature' || 
-    lower === 'nv'
+    cleanLower === 'văn' || 
+    cleanLower === 'van' || 
+    cleanLower === 'văn học' || 
+    cleanLower === 'van hoc' || 
+    cleanLower === 'ngữ văn' || 
+    cleanLower === 'ngu van' || 
+    cleanLower === 'ngu van hoc' || 
+    cleanLower === 'ngữ văn học' || 
+    cleanLower === 'literature' || 
+    cleanLower === 'vietnamese literature' || 
+    cleanLower === 'nv'
   ) {
     return 'Ngữ văn';
   }
-  if (lower === 'tiếng anh' || lower === 'tieng anh' || lower === 'anh văn' || lower === 'anh van' || lower === 'anh' || lower === 'english' || lower === 'ta' || lower === 'av' || lower === 'eng') {
+  if (cleanLower === 'tiếng anh' || cleanLower === 'tieng anh' || cleanLower === 'anh văn' || cleanLower === 'anh van' || cleanLower === 'anh' || cleanLower === 'english' || cleanLower === 'ta' || cleanLower === 'av' || cleanLower === 'eng') {
     return 'Tiếng Anh';
   }
-  if (lower === 'vật lý học' || lower === 'vat ly hoc' || lower === 'vật lý' || lower === 'vat ly' || lower === 'vật lí' || lower === 'vat li' || lower === 'vật lí học' || lower === 'vat li hoc' || lower === 'lý' || lower === 'ly' || lower === 'lí' || lower === 'li' || lower === 'physics' || lower === 'vl') {
+  if (cleanLower === 'vật lý học' || cleanLower === 'vat ly hoc' || cleanLower === 'vật lý' || cleanLower === 'vat ly' || cleanLower === 'vật lí' || cleanLower === 'vat li' || cleanLower === 'vật lí học' || cleanLower === 'vat li hoc' || cleanLower === 'lý' || cleanLower === 'ly' || cleanLower === 'lí' || cleanLower === 'li' || cleanLower === 'physics' || cleanLower === 'vl') {
     return 'Vật lí';
   }
-  if (lower === 'địa lý học' || lower === 'dia ly hoc' || lower === 'địa lý' || lower === 'dia ly' || lower === 'địa lí' || lower === 'dia li' || lower === 'địa lí học' || lower === 'dia li hoc' || lower === 'địa' || lower === 'dia' || lower === 'geography' || lower === 'đl' || lower === 'dl' || lower === 'geo') {
+  if (cleanLower === 'địa lý học' || cleanLower === 'dia ly hoc' || cleanLower === 'địa lý' || cleanLower === 'dia ly' || cleanLower === 'địa lí' || cleanLower === 'dia li' || cleanLower === 'địa lí học' || cleanLower === 'dia li hoc' || cleanLower === 'địa' || cleanLower === 'dia' || cleanLower === 'geography' || cleanLower === 'đl' || cleanLower === 'dl' || cleanLower === 'geo') {
     return 'Địa lí';
   }
-  if (lower === 'mĩ thuật' || lower === 'mi thuat' || lower === 'vẽ' || lower === 've' || lower === 'fine arts' || lower === 'visual arts' || lower === 'mt' || lower === 'mỹ thuật' || lower === 'my thuat') {
+  if (cleanLower === 'mĩ thuật' || cleanLower === 'mi thuat' || cleanLower === 'vẽ' || cleanLower === 've' || cleanLower === 'fine arts' || cleanLower === 'visual arts' || cleanLower === 'mt' || cleanLower === 'mỹ thuật' || cleanLower === 'my thuat') {
     return 'Mỹ thuật';
   }
-  if (lower === 'hóa học' || lower === 'hoa hoc' || lower === 'hóa' || lower === 'hoa' || lower === 'chemistry' || lower === 'hh') {
+  if (cleanLower === 'hóa học' || cleanLower === 'hoa hoc' || cleanLower === 'hóa' || cleanLower === 'hoa' || cleanLower === 'chemistry' || cleanLower === 'hh') {
     return 'Hóa học';
   }
-  if (lower === 'sinh học' || lower === 'sinh hoc' || lower === 'sinh' || lower === 'biology' || lower === 'sh' || lower === 'bio') {
+  if (cleanLower === 'sinh học' || cleanLower === 'sinh hoc' || cleanLower === 'sinh' || cleanLower === 'biology' || cleanLower === 'sh' || cleanLower === 'bio') {
     return 'Sinh học';
   }
-  if (lower === 'tin học' || lower === 'tin hoc' || lower === 'tin' || lower === 'cntt' || lower === 'it' || lower === 'ict' || lower === 'informatics' || lower === 'information technology' || lower === 'computer science') {
+  if (cleanLower === 'tin học' || cleanLower === 'tin hoc' || cleanLower === 'tin' || cleanLower === 'cntt' || cleanLower === 'it' || cleanLower === 'ict' || cleanLower === 'informatics' || cleanLower === 'information technology' || cleanLower === 'computer science') {
     return 'Tin học';
   }
-  if (lower === 'công nghệ học' || lower === 'cong nghe hoc' || lower === 'công nghệ' || lower === 'cong nghe' || lower === 'kĩ thuật' || lower === 'ki thuat' || lower === 'kỹ thuật' || lower === 'ky thuat' || lower === 'technology' || lower === 'cn' || lower === 'cng') {
+  if (cleanLower === 'công nghệ học' || cleanLower === 'cong nghe hoc' || cleanLower === 'công nghệ' || cleanLower === 'cong nghe' || cleanLower === 'kĩ thuật' || cleanLower === 'ki thuat' || cleanLower === 'kỹ thuật' || cleanLower === 'ky thuat' || cleanLower === 'technology' || cleanLower === 'cn' || cleanLower === 'cng') {
     return 'Công nghệ';
   }
-  if (lower === 'lịch sử học' || lower === 'lich su hoc' || lower === 'lịch sử' || lower === 'lich su' || lower === 'sử' || lower === 'su' || lower === 'history' || lower === 'ls') {
+  if (cleanLower === 'lịch sử học' || cleanLower === 'lich su hoc' || cleanLower === 'lịch sử' || cleanLower === 'lich su' || cleanLower === 'sử' || cleanLower === 'su' || cleanLower === 'history' || cleanLower === 'ls') {
     return 'Lịch sử';
   }
-  if (lower === 'tiếng pháp' || lower === 'tieng phap' || lower === 'pháp' || lower === 'phap' || lower === 'pháp văn' || lower === 'phap van' || lower === 'french' || lower === 'tp' || lower === 'pv' || lower === 'fr') {
+  if (cleanLower === 'tiếng pháp' || cleanLower === 'tieng phap' || cleanLower === 'pháp' || cleanLower === 'phap' || cleanLower === 'pháp văn' || cleanLower === 'phap van' || cleanLower === 'french' || cleanLower === 'tp' || cleanLower === 'pv' || cleanLower === 'fr') {
     return 'Tiếng Pháp';
   }
-  if (lower === 'tiếng đức' || lower === 'tieng duc' || lower === 'đức' || lower === 'duc' || lower === 'đức văn' || lower === 'duc van' || lower === 'german' || lower === 'tđ' || lower === 'de') {
+  if (cleanLower === 'tiếng đức' || cleanLower === 'tieng duc' || cleanLower === 'đức' || cleanLower === 'duc' || cleanLower === 'đức văn' || cleanLower === 'duc van' || cleanLower === 'german' || cleanLower === 'tđ' || cleanLower === 'de') {
     return 'Tiếng Đức';
   }
-  if (lower === 'tiếng nga' || lower === 'tieng nga' || lower === 'nga' || lower === 'nga văn' || lower === 'nga van' || lower === 'russian' || lower === 'tn' || lower === 'ru') {
+  if (cleanLower === 'tiếng nga' || cleanLower === 'tieng nga' || cleanLower === 'nga' || cleanLower === 'nga văn' || cleanLower === 'nga van' || cleanLower === 'russian' || cleanLower === 'tn' || cleanLower === 'ru') {
     return 'Tiếng Nga';
   }
-  if (lower === 'tiếng nhật' || lower === 'tieng nhat' || lower === 'nhật' || lower === 'nhat' || lower === 'nhật ngữ' || lower === 'nhat ngu' || lower === 'japanese' || lower === 'jp' || lower === 'ja') {
+  if (cleanLower === 'tiếng nhật' || cleanLower === 'tieng nhat' || cleanLower === 'nhật' || cleanLower === 'nhat' || cleanLower === 'nhật ngữ' || cleanLower === 'nhat ngu' || cleanLower === 'japanese' || cleanLower === 'jp' || cleanLower === 'ja') {
     return 'Tiếng Nhật';
   }
-  if (lower === 'tiếng trung quốc' || lower === 'tieng trung quoc' || lower === 'tiếng trung' || lower === 'tieng trung' || lower === 'trung văn' || lower === 'trung van' || lower === 'hoa văn' || lower === 'hoa van' || lower === 'tiếng hoa' || lower === 'tieng hoa' || lower === 'chinese' || lower === 'tt' || lower === 'tq' || lower === 'hv' || lower === 'cn' || lower === 'zh') {
+  if (cleanLower === 'tiếng trung quốc' || cleanLower === 'tieng trung quoc' || cleanLower === 'tiếng trung' || cleanLower === 'tieng trung' || cleanLower === 'trung văn' || cleanLower === 'trung van' || cleanLower === 'hoa văn' || cleanLower === 'hoa van' || cleanLower === 'tiếng hoa' || cleanLower === 'tieng hoa' || cleanLower === 'chinese' || cleanLower === 'tt' || cleanLower === 'tq' || cleanLower === 'hv' || cleanLower === 'cn' || cleanLower === 'zh') {
     return 'Tiếng Trung Quốc';
   }
-  if (lower === 'tiếng hàn quốc' || lower === 'tieng han quoc' || lower === 'tiếng hàn' || lower === 'tieng han' || lower === 'hàn ngữ' || lower === 'han ngu' || lower === 'korean' || lower === 'hq' || lower === 'kr' || lower === 'ko') {
+  if (cleanLower === 'tiếng hàn quốc' || cleanLower === 'tieng han quoc' || cleanLower === 'tiếng hàn' || cleanLower === 'tieng han' || cleanLower === 'hàn ngữ' || cleanLower === 'han ngu' || cleanLower === 'korean' || cleanLower === 'hq' || cleanLower === 'kr' || cleanLower === 'ko') {
     return 'Tiếng Hàn Quốc';
   }
-  if (lower === 'ngoại ngữ 1' || lower === 'ngoai ngu 1' || lower === 'ngoại ngữ i' || lower === 'ngoai ngu i' || lower === 'nn' || lower === 'nn1') {
+  if (cleanLower === 'ngoại ngữ 1' || cleanLower === 'ngoai ngu 1' || cleanLower === 'ngoại ngữ i' || cleanLower === 'ngoai ngu i' || cleanLower === 'nn' || cleanLower === 'nn1') {
     return 'Ngoại ngữ 1';
   }
-  if (lower === 'ngoại ngữ 2' || lower === 'ngoai ngu 2' || lower === 'ngoại ngữ ii' || lower === 'ngoai ngu ii' || lower === 'nn2' || lower === 'second foreign language') {
+  if (cleanLower === 'ngoại ngữ 2' || cleanLower === 'ngoai ngu 2' || cleanLower === 'ngoại ngữ ii' || cleanLower === 'ngoai ngu ii' || cleanLower === 'nn2' || cleanLower === 'second foreign language') {
     return 'Ngoại ngữ 2';
   }
-  if (lower === 'khoa học tự nhiên' || lower === 'khoa hoc tu nhien' || lower === 'khtn' || lower === 'khoa học tn' || lower === 'khoa hoc tn' || lower === 'natural science' || lower === 'science') {
+  if (cleanLower === 'khoa học tự nhiên' || cleanLower === 'khoa hoc tu nhien' || cleanLower === 'khtn' || cleanLower === 'khoa học tn' || cleanLower === 'khoa hoc tn' || cleanLower === 'natural science' || cleanLower === 'science') {
     return 'Khoa học tự nhiên';
   }
   if (
-    lower === 'lịch sử và địa lí' || 
-    lower === 'lich su va dia li' || 
-    lower === 'lịch sử địa lí' || 
-    lower === 'lich su dia li' || 
-    lower === 'lịch sử & địa lí' || 
-    lower === 'lịch sử - địa lí' || 
-    lower === 'sử và địa' || 
-    lower === 'su va dia' || 
-    lower === 'sử - địa' || 
-    lower === 'ls&đl' || 
-    lower === 'ls-đl' || 
-    lower === 'lịch sử và địa lý' || 
-    lower === 'lich su va dia ly' || 
-    lower === 'lịch sử địa lý' || 
-    lower === 'lich su dia ly'
+    cleanLower === 'lịch sử và địa lí' || 
+    cleanLower === 'lich su va dia li' || 
+    cleanLower === 'lịch sử địa lí' || 
+    cleanLower === 'lich su dia li' || 
+    cleanLower === 'lịch sử & địa lí' || 
+    cleanLower === 'lịch sử - địa lí' || 
+    cleanLower === 'sử và địa' || 
+    cleanLower === 'su va dia' || 
+    cleanLower === 'sử - địa' || 
+    cleanLower === 'ls&đl' || 
+    cleanLower === 'ls-đl' || 
+    cleanLower === 'lịch sử và địa lý' || 
+    cleanLower === 'lich su va dia ly' || 
+    cleanLower === 'lịch sử địa lý' || 
+    cleanLower === 'lich su dia ly'
   ) {
     return 'Lịch sử và Địa lí';
   }
-  if (lower === 'giáo dục công dân' || lower === 'giao duc cong dan' || lower === 'công dân' || lower === 'cong dan' || lower === 'gd công dân' || lower === 'gd cong dan' || lower === 'gdcd' || lower === 'cd' || lower === 'civic education') {
+  if (cleanLower === 'giáo dục công dân' || cleanLower === 'giao duc cong dan' || cleanLower === 'công dân' || cleanLower === 'cong dan' || cleanLower === 'gd công dân' || cleanLower === 'gd cong dan' || cleanLower === 'gdcd' || cleanLower === 'cd' || cleanLower === 'civic education') {
     return 'Giáo dục công dân';
   }
   if (
-    lower === 'giáo dục kinh tế và pháp luật' || 
-    lower === 'giao duc kinh te va phap luat' || 
-    lower === 'giáo dục kinh tế & pháp luật' || 
-    lower === 'kinh tế và pháp luật' || 
-    lower === 'kinh tế pháp luật' || 
-    lower === 'gdktpl' || 
-    lower === 'gdkt&pl' || 
-    lower === 'ktpl'
+    cleanLower === 'giáo dục kinh tế và pháp luật' || 
+    cleanLower === 'giao duc kinh te va phap luat' || 
+    cleanLower === 'giáo dục kinh tế & pháp luật' || 
+    cleanLower === 'kinh tế và pháp luật' || 
+    cleanLower === 'kinh tế pháp luật' || 
+    cleanLower === 'gdktpl' || 
+    cleanLower === 'gdkt&pl' || 
+    cleanLower === 'ktpl'
   ) {
     return 'Giáo dục kinh tế và pháp luật';
   }
-  if (lower === 'nghệ thuật' || lower === 'nghe thuat' || lower === 'arts' || lower === 'nt') {
+  if (cleanLower === 'nghệ thuật' || cleanLower === 'nghe thuat' || cleanLower === 'arts' || cleanLower === 'nt') {
     return 'Nghệ thuật';
   }
-  if (lower === 'âm nhạc' || lower === 'am nhac' || lower === 'nhạc' || lower === 'nhac' || lower === 'music' || lower === 'an' || lower === 'ân') {
+  if (cleanLower === 'âm nhạc' || cleanLower === 'am nhac' || cleanLower === 'nhạc' || cleanLower === 'nhac' || cleanLower === 'music' || cleanLower === 'an' || cleanLower === 'ân') {
     return 'Âm nhạc';
   }
-  if (lower === 'giáo dục thể chất' || lower === 'giao duc the chat' || lower === 'thể dục' || lower === 'the duc' || lower === 'thể chất' || lower === 'the chat' || lower === 'physical education' || lower === 'pe' || lower === 'gdtc' || lower === 'td') {
+  if (cleanLower === 'giáo dục thể chất' || cleanLower === 'giao duc the chat' || cleanLower === 'thể dục' || cleanLower === 'the duc' || cleanLower === 'thể chất' || cleanLower === 'the chat' || cleanLower === 'physical education' || cleanLower === 'pe' || cleanLower === 'gdtc' || cleanLower === 'td') {
     return 'Giáo dục thể chất';
   }
-  if (lower === 'giáo dục quốc phòng và an ninh' || lower === 'giao duc quoc phong va an ninh' || lower === 'quốc phòng' || lower === 'quoc phong' || lower === 'quốc phòng và an ninh' || lower === 'gdqp' || lower === 'gdqpan' || lower === 'gdqp-an' || lower === 'qpan' || lower === 'qp') {
+  if (cleanLower === 'giáo dục quốc phòng và an ninh' || cleanLower === 'giao duc quoc phong va an ninh' || cleanLower === 'quốc phòng' || cleanLower === 'quoc phong' || cleanLower === 'quốc phòng và an ninh' || cleanLower === 'gdqp' || cleanLower === 'gdqpan' || cleanLower === 'gdqp-an' || cleanLower === 'qpan' || cleanLower === 'qp') {
     return 'Giáo dục quốc phòng và an ninh';
   }
   if (
-    lower === 'hoạt động trải nghiệm hướng nghiệp' || 
-    lower === 'hoat dong trai nghiem huong nghiep' || 
-    lower === 'hoạt động trải nghiệm, hướng nghiệp' || 
-    lower === 'trải nghiệm hướng nghiệp' || 
-    lower === 'hoạt động trải nghiệm' || 
-    lower === 'hướng nghiệp' || 
-    lower === 'hđtnhn' || 
-    lower === 'hđtn-hn' || 
-    lower === 'tnhn' || 
-    lower === 'hđtn'
+    cleanLower === 'hoạt động trải nghiệm hướng nghiệp' || 
+    cleanLower === 'hoat dong trai nghiem huong nghiep' || 
+    cleanLower === 'hoạt động trải nghiệm, hướng nghiệp' || 
+    cleanLower === 'trải nghiệm hướng nghiệp' || 
+    cleanLower === 'hoạt động trải nghiệm' || 
+    cleanLower === 'hướng nghiệp' || 
+    cleanLower === 'hđtnhn' || 
+    cleanLower === 'hđtn-hn' || 
+    cleanLower === 'tnhn' || 
+    cleanLower === 'hđtn'
   ) {
     return 'Hoạt động trải nghiệm, hướng nghiệp';
   }
-  if (lower === 'nội dung giáo dục của địa phương' || lower === 'noi dung giao duc cua dia phuong' || lower === 'giáo dục địa phương' || lower === 'giao duc dia phuong' || lower === 'nội dung địa phương' || lower === 'chương trình địa phương' || lower === 'gdđp' || lower === 'gddp' || lower === 'ndgdđp') {
+  if (cleanLower === 'nội dung giáo dục của địa phương' || cleanLower === 'noi dung giao duc cua dia phuong' || cleanLower === 'giáo dục địa phương' || cleanLower === 'giao duc dia phuong' || cleanLower === 'nội dung địa phương' || cleanLower === 'chương trình địa phương' || cleanLower === 'gdđp' || cleanLower === 'gddp' || cleanLower === 'ndgdđp') {
     return 'Nội dung giáo dục của địa phương';
   }
-  if (lower === 'tiếng dân tộc thiểu số' || lower === 'tieng dan toc thieu so' || lower === 'tiếng dân tộc' || lower === 'tieng dan toc' || lower === 'ngôn ngữ dân tộc' || lower === 'tdt' || lower === 'tdtts') {
+  if (cleanLower === 'tiếng dân tộc thiểu số' || cleanLower === 'tieng dan toc thieu so' || cleanLower === 'tiếng dân tộc' || cleanLower === 'tieng dan toc' || cleanLower === 'ngôn ngữ dân tộc' || cleanLower === 'tdt' || cleanLower === 'tdtts') {
     return 'Tiếng dân tộc thiểu số';
   }
-  if (lower === 'chuyên đề học tập' || lower === 'chuyen de hoc tap' || lower === 'chuyên đề' || lower === 'chuyen de' || lower === 'chuyên đề lựa chọn' || lower === 'cđht' || lower === 'cdht') {
+  if (cleanLower === 'chuyên đề học tập' || cleanLower === 'chuyen de hoc tap' || cleanLower === 'chuyên đề' || cleanLower === 'chuyen de' || cleanLower === 'chuyên đề lựa chọn' || cleanLower === 'cđht' || cleanLower === 'cdht') {
     return 'Chuyên đề học tập';
   }
 
-  // School-specific subjects to remain unchanged
-  const isSchoolSpecific = ['wellbeing', 'pdp', 'project', 'stem', 'robotics', 'kĩ năng sống', 'ki nang song', 'well-being'].some(
-    s => lower.includes(s)
-  );
-  if (isSchoolSpecific) {
-    if (lower.includes('well-being') || lower.includes('wellbeing')) {
-      return 'Wellbeing';
-    }
-    return clean;
+  // Pure STEM school specific subject
+  if (cleanLower === 'stem') {
+    return 'STEM';
   }
 
-  // Otherwise, return capitalized first letter name
   return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
 /**
  * Normalizes an array of subject scores by merging scores of the same subject name.
- * If there are multiple entries for the same normalized subject, they are merged.
- * Merge strategy: average the scores (or take the latest/highest, averaging is standard or we take the average/latest).
- * Let's average the scores and maximize/average target scores.
+ * Respects special FSchool merge rules for PDP, Vovinam, STEM-AI:
+ * 1. Mapped to PDP, Vovinam, STEM-AI.
+ * 2. Default assessment format: Đạt/Không đạt.
+ * 3. Never average multiple records for special subjects; instead, pick the most recent (last entered)
+ *    unless a specific "tổng kết" / "summary" record is present (which is prioritized).
  */
-import { SubjectScore } from '../types';
-
 export function normalizeAndMergeSubjectScores(scores: SubjectScore[]): SubjectScore[] {
   const mergedMap: { [normalizedName: string]: SubjectScore[] } = {};
 
   scores.forEach(score => {
-    const normName = normalizeSubjectName(score.subjectName);
+    const rawName = score.subjectName;
+    const normName = normalizeSubjectName(rawName);
+    
+    const isSpecial = normName === 'Vovinam' || normName === 'PDP' || normName === 'STEM-AI';
+    
+    // Determine the imported or raw score
+    const rawScore = score.score !== undefined && score.score !== null ? score.score : score.currentScore;
+    
+    let scoreType: 'numeric' | 'pass_fail' | 'not_available' = 'numeric';
+    let assessmentResult: 'Đạt' | 'Không đạt' | null = null;
+    let finalScore: number | null = null;
+    
+    if (isSpecial) {
+      // 1. Check if the cell represents a standard pass/fail string
+      const textResult = score.assessmentResult || (typeof rawScore === 'string' ? rawScore : null);
+      const normalizedResult = normalizeAssessmentResult(textResult);
+      
+      if (normalizedResult) {
+        scoreType = 'pass_fail';
+        assessmentResult = normalizedResult;
+        finalScore = null;
+      } else if (rawScore !== undefined && rawScore !== null && !isNaN(Number(rawScore))) {
+        // If it's a numeric score, we check if it is a default slider placeholder or real data
+        const numVal = Number(rawScore);
+        if (score.scoreType === 'numeric') {
+          scoreType = 'numeric';
+          finalScore = numVal;
+          assessmentResult = null;
+        } else {
+          // Default to pass/fail based on the number
+          scoreType = 'pass_fail';
+          assessmentResult = numVal >= 5 ? 'Đạt' : 'Không đạt';
+          finalScore = null;
+        }
+      } else {
+        // No valid data
+        scoreType = 'not_available';
+        assessmentResult = null;
+        finalScore = null;
+      }
+    } else {
+      // Regular subjects are numeric
+      scoreType = 'numeric';
+      finalScore = (rawScore !== undefined && rawScore !== null && !isNaN(Number(rawScore))) ? Number(rawScore) : 7.0;
+    }
+
+    const currentScore = finalScore !== null ? finalScore : (assessmentResult === 'Đạt' ? 8.5 : 4.0);
+
+    const sanitized: SubjectScore = {
+      ...score,
+      subjectName: normName,
+      originalSubjectName: score.originalSubjectName || rawName,
+      scoreType,
+      score: finalScore,
+      assessmentResult,
+      currentScore,
+      targetScore: score.targetScore !== undefined && score.targetScore !== null ? score.targetScore : 8.5,
+      favoriteLevel: score.favoriteLevel !== undefined && score.favoriteLevel !== null ? score.favoriteLevel : 3,
+      trend: score.trend || 'stable'
+    };
+
     if (!mergedMap[normName]) {
       mergedMap[normName] = [];
     }
-    mergedMap[normName].push(score);
+    mergedMap[normName].push(sanitized);
   });
 
   return Object.entries(mergedMap).map(([normName, items]) => {
     if (items.length === 1) {
-      return {
-        ...items[0],
-        subjectName: normName
-      };
+      return items[0];
     }
 
-    // Merge duplicates by averaging their current/target scores
-    const currentSum = items.reduce((sum, item) => sum + item.currentScore, 0);
-    const targetSum = items.reduce((sum, item) => sum + item.targetScore, 0);
-    const favLevelMax = items.reduce((max, item) => Math.max(max, item.favoriteLevel), 0);
-    const trend = items[items.length - 1].trend; // Take trend of the last one
+    const isSpecial = normName === 'Vovinam' || normName === 'PDP' || normName === 'STEM-AI';
 
-    return {
-      subjectName: normName,
-      currentScore: Math.round((currentSum / items.length) * 10) / 10,
-      targetScore: Math.round((targetSum / items.length) * 10) / 10,
-      trend,
-      favoriteLevel: favLevelMax
-    };
+    if (isSpecial) {
+      // Rule: Find if any item is a summary row ("tổng kết")
+      const isSummaryRow = (item: SubjectScore) => {
+        const orig = (item.originalSubjectName || item.subjectName || '').toLowerCase();
+        return orig.includes('tổng kết') || orig.includes('tong ket') || orig.includes('chung') || orig.includes('summary') || orig.includes('tb');
+      };
+
+      const summaryItems = items.filter(isSummaryRow);
+      
+      // If there are summary items, use the last summary item.
+      // Otherwise, use the last item in the sequence (the most recent import).
+      const chosenItem = summaryItems.length > 0 
+        ? summaryItems[summaryItems.length - 1] 
+        : items[items.length - 1];
+
+      return {
+        ...chosenItem,
+        subjectName: normName,
+        reason: summaryItems.length > 0 ? `Ưu tiên cột tổng kết "${chosenItem.originalSubjectName}".` : undefined
+      };
+    } else {
+      // Standard subjects: Average their scores
+      const validScoreItems = items.filter(item => item.scoreType === 'numeric' && item.score !== null);
+      const avgScore = validScoreItems.length > 0
+        ? validScoreItems.reduce((sum, item) => sum + (item.score || 0), 0) / validScoreItems.length
+        : items.reduce((sum, item) => sum + item.currentScore, 0) / items.length;
+
+      const targetSum = items.reduce((sum, item) => sum + item.targetScore, 0);
+      const favLevelMax = items.reduce((max, item) => Math.max(max, item.favoriteLevel), 0);
+      const lastItem = items[items.length - 1];
+
+      return {
+        ...lastItem,
+        subjectName: normName,
+        scoreType: 'numeric',
+        score: Math.round(avgScore * 10) / 10,
+        currentScore: Math.round(avgScore * 10) / 10,
+        targetScore: Math.round((targetSum / items.length) * 10) / 10,
+        favoriteLevel: favLevelMax,
+        trend: lastItem.trend
+      };
+    }
   });
 }

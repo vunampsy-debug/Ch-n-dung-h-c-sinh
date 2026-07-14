@@ -121,15 +121,31 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
         data.scores.forEach((newS: any) => {
           const normName = normalizeSubjectName(newS.subjectName);
           const idx = updated.findIndex(s => normalizeSubjectName(s.subjectName).toLowerCase() === normName.toLowerCase());
+          
+          let parsedScoreVal = 7.0;
+          if (newS.score !== undefined && newS.score !== null) {
+            parsedScoreVal = newS.score;
+          } else if (newS.currentScore !== undefined && newS.currentScore !== null) {
+            parsedScoreVal = newS.currentScore;
+          } else if (newS.scoreType === 'pass_fail') {
+            parsedScoreVal = newS.assessmentResult === 'Đạt' ? 8.5 : 4.0;
+          }
+
           if (idx !== -1) {
-            updated[idx].currentScore = newS.currentScore;
+            updated[idx] = {
+              ...updated[idx],
+              ...newS,
+              subjectName: normName,
+              currentScore: parsedScoreVal
+            };
           } else {
             updated.push({
               subjectName: normName,
-              currentScore: newS.currentScore,
+              currentScore: parsedScoreVal,
               targetScore: 10,
               trend: 'stable',
-              favoriteLevel: 5
+              favoriteLevel: 5,
+              ...newS
             });
           }
         });
@@ -722,72 +738,209 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
               {/* Subjects Score Adjustment list */}
               <div className="space-y-4 pt-2">
                 <div className="grid grid-cols-12 gap-4 text-[10px] font-black text-slate-400 uppercase tracking-wider pb-1 border-b">
-                  <div className="col-span-4">Tên môn học</div>
-                  <div className="col-span-4 text-center">Điểm Hiện Tại (0-10)</div>
-                  <div className="col-span-3 text-center">Yêu Thích (1-5)</div>
+                  <div className="col-span-3">Tên môn học</div>
+                  <div className="col-span-3 text-center">Hệ Điểm</div>
+                  <div className="col-span-3 text-center">Điểm Hiện Tại / Đánh Giá</div>
+                  <div className="col-span-2 text-center">Yêu Thích</div>
                   <div className="col-span-1 text-center">Xóa</div>
                 </div>
 
                 <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                  {academicScores.map((score, idx) => (
-                    <div key={idx} className="grid grid-cols-12 gap-4 items-center bg-white p-2.5 rounded-xl border border-slate-150 hover:shadow-sm transition-all text-xs font-semibold">
-                      
-                      {/* Name */}
-                      <div className="col-span-4 font-extrabold text-slate-800 truncate">
-                        {score.subjectName}
-                      </div>
+                  {academicScores.map((score, idx) => {
+                    const isSpecialSubject = score.subjectName === 'Vovinam' || score.subjectName === 'PDP' || score.subjectName === 'STEM-AI';
+                    return (
+                      <div key={idx} className="grid grid-cols-12 gap-4 items-center bg-white p-2.5 rounded-xl border border-slate-150 hover:shadow-sm transition-all text-xs font-semibold">
+                        
+                        {/* Name */}
+                        <div className="col-span-3 font-extrabold text-slate-800 break-words pr-1.5">
+                          {score.subjectName}
+                        </div>
 
-                      {/* Current Score Slider */}
-                      <div className="col-span-4 flex items-center gap-2">
-                        <input
-                          type="range"
-                          min="0"
-                          max="10"
-                          step="0.1"
-                          value={score.currentScore}
-                          onChange={(e) => {
-                            const copy = [...academicScores];
-                            copy[idx].currentScore = parseFloat(e.target.value);
-                            setAcademicScores(copy);
-                          }}
-                          className="w-full accent-orange-600 h-1.5 bg-slate-100 rounded-full appearance-none cursor-pointer"
-                        />
-                        <span className="font-mono font-black text-slate-800 text-right w-8">{score.currentScore.toFixed(1)}</span>
-                      </div>
+                        {/* Score System Toggle */}
+                        <div className="col-span-3 flex justify-center">
+                          {isSpecialSubject ? (
+                            <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                              Môn chuyên biệt
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const copy = [...academicScores];
+                                const currentType = copy[idx].scoreType || 'numeric';
+                                if (currentType === 'numeric') {
+                                  copy[idx].scoreType = 'pass_fail';
+                                  copy[idx].assessmentResult = 'Đạt';
+                                  copy[idx].currentScore = 8.5; // default numeric map
+                                } else {
+                                  copy[idx].scoreType = 'numeric';
+                                  copy[idx].assessmentResult = null;
+                                  copy[idx].currentScore = 8.0; // default numeric map
+                                }
+                                setAcademicScores(copy);
+                              }}
+                              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer shadow-sm border ${
+                                (score.scoreType || 'numeric') === 'numeric'
+                                  ? 'bg-orange-50 text-orange-700 border-orange-100 hover:bg-orange-100'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
+                              }`}
+                            >
+                              {(score.scoreType || 'numeric') === 'numeric' ? 'Số (0-10)' : 'Đạt / Chưa đạt'}
+                            </button>
+                          )}
+                        </div>
 
-                      {/* Favorite Level Checkbox/Buttons */}
-                      <div className="col-span-3 flex justify-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
+                        {/* Current Score / Assessment Selector */}
+                        <div className="col-span-3 flex items-center justify-center">
+                          {isSpecialSubject ? (
+                            <div className="flex justify-center items-center gap-1 w-full">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const copy = [...academicScores];
+                                  copy[idx].scoreType = 'pass_fail';
+                                  copy[idx].assessmentResult = 'Đạt';
+                                  copy[idx].score = null;
+                                  copy[idx].currentScore = 8.5;
+                                  setAcademicScores(copy);
+                                }}
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold transition-all cursor-pointer ${
+                                  score.scoreType === 'pass_fail' && score.assessmentResult === 'Đạt'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                                }`}
+                              >
+                                Đạt
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const copy = [...academicScores];
+                                  copy[idx].scoreType = 'pass_fail';
+                                  copy[idx].assessmentResult = 'Không đạt';
+                                  copy[idx].score = null;
+                                  copy[idx].currentScore = 4.0;
+                                  setAcademicScores(copy);
+                                }}
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold transition-all cursor-pointer ${
+                                  score.scoreType === 'pass_fail' && score.assessmentResult === 'Không đạt'
+                                    ? 'bg-red-500 text-white shadow-sm'
+                                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                                }`}
+                              >
+                                Không đạt
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const copy = [...academicScores];
+                                  copy[idx].scoreType = 'not_available';
+                                  copy[idx].assessmentResult = null;
+                                  copy[idx].score = null;
+                                  copy[idx].currentScore = 7.0;
+                                  setAcademicScores(copy);
+                                }}
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold transition-all cursor-pointer ${
+                                  score.scoreType === 'not_available'
+                                    ? 'bg-amber-500 text-white shadow-sm'
+                                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                                }`}
+                              >
+                                Chưa có
+                              </button>
+                            </div>
+                          ) : (score.scoreType || 'numeric') === 'numeric' ? (
+                            <div className="flex items-center gap-1.5 w-full">
+                              <input
+                                type="range"
+                                min="0"
+                                max="10"
+                                step="0.1"
+                                value={score.currentScore}
+                                onChange={(e) => {
+                                  const copy = [...academicScores];
+                                  copy[idx].currentScore = parseFloat(e.target.value);
+                                  if (copy[idx].score !== undefined) {
+                                    copy[idx].score = copy[idx].currentScore;
+                                  }
+                                  setAcademicScores(copy);
+                                }}
+                                className="w-full accent-orange-600 h-1 bg-slate-100 rounded-full appearance-none cursor-pointer"
+                              />
+                              <span className="font-mono font-black text-slate-800 text-right min-w-[20px] text-[11px]">{score.currentScore.toFixed(1)}</span>
+                            </div>
+                          ) : (
+                            <div className="flex justify-center items-center gap-1 w-full">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const copy = [...academicScores];
+                                  copy[idx].assessmentResult = 'Đạt';
+                                  copy[idx].currentScore = 8.5;
+                                  setAcademicScores(copy);
+                                }}
+                                className={`px-2 py-0.5 rounded text-[10px] font-extrabold transition-all cursor-pointer ${
+                                  score.assessmentResult === 'Đạt'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                                }`}
+                              >
+                                Đạt
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const copy = [...academicScores];
+                                  copy[idx].assessmentResult = 'Chưa đạt';
+                                  copy[idx].currentScore = 4.0;
+                                  setAcademicScores(copy);
+                                }}
+                                className={`px-2 py-0.5 rounded text-[10px] font-extrabold transition-all cursor-pointer ${
+                                  score.assessmentResult === 'Chưa đạt'
+                                    ? 'bg-red-500 text-white shadow-sm'
+                                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                                }`}
+                              >
+                                Chưa đạt
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Favorite Level Checkbox/Buttons */}
+                        <div className="col-span-2 flex justify-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              type="button"
+                              key={star}
+                              onClick={() => {
+                                const copy = [...academicScores];
+                                copy[idx].favoriteLevel = star;
+                                setAcademicScores(copy);
+                              }}
+                              className="p-0.5 hover:scale-110 transition-all cursor-pointer"
+                            >
+                              <Star className={`w-3 h-3 ${
+                                star <= score.favoriteLevel ? 'fill-orange-500 text-orange-500' : 'text-slate-200'
+                              }`} />
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Trash Button */}
+                        <div className="col-span-1 flex justify-center">
                           <button
                             type="button"
-                            key={star}
-                            onClick={() => {
-                              const copy = [...academicScores];
-                              copy[idx].favoriteLevel = star;
-                              setAcademicScores(copy);
-                            }}
-                            className="p-0.5 hover:scale-110 transition-all cursor-pointer"
+                            onClick={() => handleRemoveSubject(score.subjectName)}
+                            className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
                           >
-                            <Star className={`w-3.5 h-3.5 ${
-                              star <= score.favoriteLevel ? 'fill-orange-500 text-orange-500' : 'text-slate-200'
-                            }`} />
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                        ))}
-                      </div>
+                        </div>
 
-                      {/* Trash Button */}
-                      <div className="col-span-1 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSubject(score.subjectName)}
-                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
-
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -945,7 +1098,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
                   {experientialActivities.map((act, idx) => (
                     <div key={idx} className="grid grid-cols-12 gap-4 items-center bg-white p-3 rounded-xl border border-slate-150 hover:shadow-sm transition-all text-xs font-semibold">
                       
-                      <div className="col-span-6 text-slate-800 font-extrabold truncate">
+                      <div className="col-span-6 text-slate-800 font-extrabold break-words pr-2">
                         {act.activityName}
                       </div>
 

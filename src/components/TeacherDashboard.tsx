@@ -723,9 +723,9 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
                               <span>Năng lực nổi bật nhất:</span>
                               <span className="font-black text-orange-600">{topComp?.name || 'Đang tính toán'}</span>
                             </div>
-                            <div className="flex justify-between text-slate-500 font-bold">
-                              <span>Mục tiêu tương thích:</span>
-                              <span className="font-black text-slate-800 truncate max-w-[130px]" title={student.futureVision.title}>
+                            <div className="flex justify-between items-start text-slate-500 font-bold gap-2">
+                              <span className="shrink-0">Mục tiêu tương thích:</span>
+                              <span className="font-black text-slate-800 break-words text-right flex-1 pl-2">
                                 {student.futureVision.title || 'Chưa cập nhật'}
                               </span>
                             </div>
@@ -1025,7 +1025,7 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
                         {viewingReport.experientialActivities.map((act, i) => (
                           <div key={i} className="flex justify-between items-center p-2.5 bg-white border border-slate-100 rounded-xl text-xs hover:border-slate-200 transition-all">
                             <div className="flex-1 min-w-0 pr-2">
-                              <p className="font-extrabold text-slate-800 text-[11px] truncate" title={act.activityName}>
+                              <p className="font-extrabold text-slate-800 text-[11px] break-words whitespace-normal">
                                 {act.activityName}
                               </p>
                               <div className="flex items-center gap-1.5 mt-0.5">

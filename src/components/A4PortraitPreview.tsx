@@ -67,11 +67,41 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
       </div>
 
       {/* A4 Container (Centered, shadow-on-screen, white-background) */}
-      <div className="flex justify-center bg-slate-100/50 p-2 sm:p-6 rounded-3xl border border-slate-200 overflow-x-auto">
+      <div className="flex flex-col items-center bg-slate-100/50 p-2 sm:p-6 rounded-3xl border border-slate-200 gap-8 overflow-x-auto">
+        
+        {/* Style block for perfect standard A4 printing and page splits */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media print {
+            body {
+              background: white !important;
+              color: black !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+            .a4-page {
+              margin: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+              page-break-after: always;
+              break-after: page;
+              width: 210mm !important;
+              height: 297mm !important;
+              padding: 12mm 15mm !important;
+              box-sizing: border-box !important;
+            }
+            @page {
+              size: A4 portrait;
+              margin: 0;
+            }
+          }
+        ` }} />
+
+        {/* ================= PAGE 1 ================= */}
         <div 
           ref={printRef}
-          className="a4-container bg-white w-[210mm] min-h-[297mm] p-[12mm] border border-slate-200 shadow-2xl relative text-slate-900 flex flex-col justify-between"
-          id="a4-print-element"
+          className="a4-page bg-white w-[210mm] min-h-[297mm] h-[297mm] p-[12mm] border border-slate-200 shadow-2xl relative text-slate-900 flex flex-col justify-between"
+          id="a4-print-element-p1"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
           {/* Header Block */}
@@ -135,7 +165,7 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
                 </div>
                 <div className="col-span-2 border-t border-slate-200/50 pt-1.5">
                   <span className="text-[9px] font-bold uppercase text-slate-400 block leading-tight">Năng khiếu, sở thích học sinh</span>
-                  <span className="font-medium text-slate-600 truncate block text-[10px]">{report.profile.hobbyDescription || 'Không có ghi nhận đặc biệt'}</span>
+                  <span className="font-semibold text-slate-600 block text-[10px] whitespace-normal leading-normal">{report.profile.hobbyDescription || 'Không có ghi nhận đặc biệt'}</span>
                 </div>
               </div>
             </div>
@@ -161,6 +191,7 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
                         stroke="#ea580c" 
                         fill="#f97316" 
                         fillOpacity={0.25} 
+                        id="radar-line-a"
                       />
                     </RadarChart>
                   </ResponsiveContainer>
@@ -168,12 +199,12 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
               </div>
 
               {/* Competencies Table list (Right) */}
-              <div className="col-span-7 border border-slate-200 rounded-2xl p-3 bg-white h-[180px] overflow-hidden flex flex-col justify-between">
+              <div className="col-span-7 border border-slate-200 rounded-2xl p-3 bg-white min-h-[180px] flex flex-col justify-between">
                 <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block border-b pb-1">
                   Điểm đánh giá năng lực chi tiết
                 </span>
                 
-                <div className="space-y-1.5 py-1.5 flex-1 overflow-hidden">
+                <div className="space-y-1.5 py-1.5 flex-1">
                   {report.competencies.map((c) => (
                     <div key={c.id} className="flex justify-between items-center text-[10px]">
                       <div className="flex items-center gap-1.5">
@@ -199,58 +230,60 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
             <div className="grid grid-cols-2 gap-4">
               
               {/* Academic Panel */}
-              <div className="border border-slate-200 rounded-2xl p-3 bg-white space-y-2">
-                <div className="flex justify-between items-center border-b pb-1">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Kết quả học tập</span>
-                  <span className="text-[8px] font-black uppercase tracking-wider text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">Thang điểm 10</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">
-                  {report.academicScores.slice(0, 6).map((score, idx) => (
-                    <div key={idx} className="flex justify-between items-center py-0.5 border-b border-slate-50">
-                      <span className="font-bold text-slate-600 truncate w-20">{normalizeSubjectName(score.subjectName)}</span>
-                      <div className="flex items-center gap-1.5 font-mono">
-                        <span className="font-extrabold text-slate-800">
-                          {score.scoreType === 'numeric'
-                            ? (score.score !== null && score.score !== undefined ? score.score.toFixed(1) : (score.currentScore !== undefined ? score.currentScore.toFixed(1) : ''))
-                            : score.scoreType === 'pass_fail'
-                            ? score.assessmentResult || 'Đạt'
-                            : 'Chưa có'}
-                        </span>
-                        {score.scoreType === 'numeric' && (
-                          score.trend === 'up' ? (
-                            <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
-                          ) : score.trend === 'down' ? (
-                            <TrendingDown className="w-2.5 h-2.5 text-rose-500" />
-                          ) : (
-                            <Minus className="w-2.5 h-2.5 text-slate-400" />
-                          )
-                        )}
+              <div className="border border-slate-200 rounded-2xl p-3 bg-white space-y-2 flex flex-col justify-between min-h-[190px]">
+                <div>
+                  <div className="flex justify-between items-center border-b pb-1 mb-1.5">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Kết quả học tập</span>
+                    <span className="text-[8px] font-black uppercase tracking-wider text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">Thang điểm 10</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">
+                    {report.academicScores.map((score, idx) => (
+                      <div key={idx} className="flex justify-between items-center py-0.5 border-b border-slate-50 gap-2">
+                        <span className="font-bold text-slate-600 break-words flex-1 pr-1">{normalizeSubjectName(score.subjectName)}</span>
+                        <div className="flex items-center gap-1 font-mono shrink-0">
+                          <span className="font-extrabold text-slate-800">
+                            {score.scoreType === 'numeric'
+                              ? (score.score !== null && score.score !== undefined ? score.score.toFixed(1) : (score.currentScore !== undefined ? score.currentScore.toFixed(1) : ''))
+                              : score.scoreType === 'pass_fail'
+                              ? score.assessmentResult || 'Đạt'
+                              : 'Chưa có dữ liệu'}
+                          </span>
+                          {score.scoreType === 'numeric' && (
+                            score.trend === 'up' ? (
+                              <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
+                            ) : score.trend === 'down' ? (
+                              <TrendingDown className="w-2.5 h-2.5 text-rose-500" />
+                            ) : (
+                              <Minus className="w-2.5 h-2.5 text-slate-400" />
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-                <div className="pt-1.5">
+                <div className="pt-2 border-t border-slate-100 mt-2">
                   <span className="text-[8px] font-black text-slate-400 block uppercase tracking-wider leading-none">Môn học yêu thích nhất:</span>
                   <span className="text-[9px] font-bold text-slate-700">{report.survey.q2_favoriteSubjects.join(', ') || 'Chưa thiết lập'}</span>
                 </div>
               </div>
 
               {/* Experiential Activities Panel */}
-              <div className="border border-slate-200 rounded-2xl p-3 bg-white space-y-2 flex flex-col justify-between">
+              <div className="border border-slate-200 rounded-2xl p-3 bg-white space-y-2 flex flex-col justify-between min-h-[190px]">
                 <div>
-                  <div className="flex justify-between items-center border-b pb-1">
+                  <div className="flex justify-between items-center border-b pb-1 mb-1.5">
                     <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Đánh giá hoạt động trải nghiệm</span>
                     <span className="text-[8px] font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Thang 100</span>
                   </div>
 
-                  <div className="space-y-1.5 py-1.5 text-[9px]">
+                  <div className="space-y-2 py-0.5 text-[9px]">
                     {report.experientialActivities.length > 0 ? (
-                      report.experientialActivities.slice(0, 3).map((act, idx) => (
+                      report.experientialActivities.map((act, idx) => (
                         <div key={idx} className="space-y-0.5">
-                          <div className="flex justify-between text-[9px] font-semibold text-slate-600">
-                            <span className="truncate w-36 block">{act.activityName}</span>
-                            <span className="font-mono font-black text-slate-800">{act.val}</span>
+                          <div className="flex justify-between text-[9px] font-semibold text-slate-600 gap-2 items-start">
+                            <span className="break-words flex-1 pr-1">{act.activityName}</span>
+                            <span className="font-mono font-black text-slate-800 shrink-0">{act.val}</span>
                           </div>
                           <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
                             <div className="bg-orange-500 h-full rounded-full" style={{ width: `${act.val}%` }} />
@@ -263,9 +296,9 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
                   </div>
                 </div>
 
-                <div className="border-t pt-1.5">
+                <div className="border-t pt-2 mt-2">
                   <span className="text-[8px] font-black text-slate-400 block uppercase tracking-wider leading-none">Phân vai làm việc nhóm:</span>
-                  <span className="text-[9px] font-extrabold text-orange-600 uppercase">
+                  <span className="text-[9px] font-extrabold text-orange-600 uppercase block mt-0.5">
                     {report.survey.q3_teamRole === 'leader' ? 'Trưởng Nhóm (Leader)' :
                      report.survey.q3_teamRole === 'thinker' ? 'Người Ý Tưởng (Thinker)' :
                      report.survey.q3_teamRole === 'executor' ? 'Người Thực Thi (Executor)' :
@@ -277,67 +310,111 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
 
             </div>
 
+          </div>
+
+          {/* Footer - Page 1 */}
+          <div className="border-t border-slate-200 pt-3 mt-4">
+            <div className="flex justify-between items-center text-[9px] leading-normal font-semibold text-slate-400">
+              <div>
+                Học sinh: <span className="font-extrabold text-slate-700">{report.profile.name}</span>
+              </div>
+              <div>
+                Trường: <span className="font-extrabold text-slate-700">{report.profile.school || 'THPT FPT Tây Hà Nội'}</span>
+              </div>
+              <div className="text-right flex items-center gap-2">
+                <span>Giáo viên đồng hành: <span className="font-extrabold text-slate-700">{report.profile.teacherInCharge || 'Chưa cập nhật'}</span></span>
+                <span className="font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded ml-1 font-mono">Trang 1/2</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* ================= PAGE 2 ================= */}
+        <div 
+          className="a4-page bg-white w-[210mm] min-h-[297mm] h-[297mm] p-[12mm] border border-slate-200 shadow-2xl relative text-slate-900 flex flex-col justify-between"
+          id="a4-print-element-p2"
+          style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+        >
+          <div className="space-y-4">
+            
+            {/* Page 2 Header */}
+            <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Chân dung học sinh & Định hướng học bạ</p>
+                <p className="text-[10px] font-black text-slate-800 tracking-wide">{report.profile.name} - Lớp {report.profile.class}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded font-mono">Trang 2/2</p>
+              </div>
+            </div>
+
             {/* IV. AI PORTRAIT CAREER RECOMMENDATION */}
-            <div className="border border-slate-200 rounded-2xl p-3 bg-orange-50/5 space-y-2.5 [word-break:keep-all]">
+            <div className="border border-slate-200 rounded-2xl p-3 bg-orange-50/5 space-y-3">
               
               {/* Section title */}
-              <div className="flex justify-between items-center border-b border-orange-100 pb-1">
+              <div className="flex justify-between items-center border-b border-orange-100 pb-1.5">
                 <div className="flex items-center gap-1.5 text-orange-700">
                   <Sparkles className="w-3.5 h-3.5 fill-orange-500 text-orange-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-wider">Hồ Sơ Hướng Nghiệp Chuyên Sâu & Khuyến Nghị Phát Triển Từ AI</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider">Khuyến Nghị Chuyên Sâu & Định Hướng Phát Triển Từ Trí Tuệ Nhân Tạo (AI)</span>
                 </div>
-                <span className="text-[8px] font-black text-orange-500 bg-orange-50 border border-orange-200/50 px-2 py-0.5 rounded-full uppercase tracking-wider">Khuyến nghị chuyên sâu</span>
               </div>
 
               {/* Strengths, Weaknesses & Improvements */}
-              <div className="grid grid-cols-3 gap-2 text-[9px] leading-relaxed">
-                <div className="space-y-1 bg-emerald-50/25 p-2 rounded-xl border border-emerald-100">
-                  <span className="text-[8px] font-black text-emerald-700 block uppercase tracking-wider">Thế mạnh nổi bật:</span>
-                  <ul className="space-y-0.5 text-slate-700 list-disc pl-3 font-semibold">
-                    {report.strengths.slice(0, 3).map((s, idx) => (
-                      <li key={idx} className="[word-break:keep-all]">{s}</li>
-                    ))}
-                  </ul>
+              <div className="grid grid-cols-3 gap-3 text-[9px] leading-relaxed">
+                <div className="space-y-1.5 bg-emerald-50/25 p-2 rounded-xl border border-emerald-100 flex flex-col justify-between h-full">
+                  <div>
+                    <span className="text-[8px] font-black text-emerald-700 block uppercase tracking-wider mb-1 border-b border-emerald-100 pb-0.5">Thế mạnh nổi bật:</span>
+                    <ul className="space-y-1 text-slate-700 list-disc pl-3 font-semibold whitespace-normal break-words">
+                      {report.strengths.map((s, idx) => (
+                        <li key={idx}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
                 
-                <div className="space-y-1 bg-rose-50/25 p-2 rounded-xl border border-rose-100">
-                  <span className="text-[8px] font-black text-rose-700 block uppercase tracking-wider">Điểm hạn chế cần nhận thức:</span>
-                  <ul className="space-y-0.5 text-slate-700 list-disc pl-3 font-semibold">
-                    {(report.weaknesses || [
-                      'Dễ gặp áp lực quá tải khi gánh vác nhiều nhiệm vụ cùng lúc.',
-                      'Còn rụt rè, chưa chủ động nêu ý kiến phản biện trước đám đông.'
-                    ]).slice(0, 3).map((w, idx) => (
-                      <li key={idx} className="[word-break:keep-all]">{w}</li>
-                    ))}
-                  </ul>
+                <div className="space-y-1.5 bg-rose-50/25 p-2 rounded-xl border border-rose-100 flex flex-col justify-between h-full">
+                  <div>
+                    <span className="text-[8px] font-black text-rose-700 block uppercase tracking-wider mb-1 border-b border-rose-100 pb-0.5">Điểm hạn chế cần nhận thức:</span>
+                    <ul className="space-y-1 text-slate-700 list-disc pl-3 font-semibold whitespace-normal break-words">
+                      {(report.weaknesses || [
+                        'Dễ gặp áp lực quá tải khi gánh vác nhiều nhiệm vụ cùng lúc.',
+                        'Còn rụt rè, chưa chủ động nêu ý kiến phản biện trước đám đông.'
+                      ]).map((w, idx) => (
+                        <li key={idx}>{w}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
 
-                <div className="space-y-1 bg-amber-50/25 p-2 rounded-xl border border-amber-100">
-                  <span className="text-[8px] font-black text-amber-700 block uppercase tracking-wider">Định hướng cần rèn luyện:</span>
-                  <ul className="space-y-0.5 text-slate-700 list-disc pl-3 font-semibold">
-                    {report.improvements.slice(0, 3).map((i, idx) => (
-                      <li key={idx} className="[word-break:keep-all]">{i}</li>
-                    ))}
-                  </ul>
+                <div className="space-y-1.5 bg-amber-50/25 p-2 rounded-xl border border-amber-100 flex flex-col justify-between h-full">
+                  <div>
+                    <span className="text-[8px] font-black text-amber-700 block uppercase tracking-wider mb-1 border-b border-amber-100 pb-0.5">Định hướng cần rèn luyện:</span>
+                    <ul className="space-y-1 text-slate-700 list-disc pl-3 font-semibold whitespace-normal break-words">
+                      {report.improvements.map((i, idx) => (
+                        <li key={idx}>{i}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
 
               {/* 5 Career sectors match */}
               <div className="space-y-1.5 bg-white p-2.5 rounded-xl border border-slate-200">
-                <span className="text-[8px] font-black text-orange-600 block uppercase tracking-wider">Top 5 Nhóm Ngành Nghề Phù Hợp Nhất (Theo Holland & Super):</span>
+                <span className="text-[8px] font-black text-orange-600 block uppercase tracking-wider">Top 5 Nhóm Ngành Nghề Phù Hợp Nhất (Theo trắc nghiệm Holland & lý thuyết Super):</span>
                 <div className="grid grid-cols-5 gap-2">
                   {(report.suitableCareers || [
                     report.futureVision || { title: 'Nhóm ngành Công nghệ', description: 'Nghiên cứu công nghệ thông tin', matchPercentage: 90 }
                   ]).slice(0, 5).map((career, idx) => (
-                    <div key={idx} className="p-1.5 rounded-lg border border-slate-100 bg-slate-50/50 flex flex-col justify-between h-[64px]">
+                    <div key={idx} className="p-2 rounded-lg border border-slate-100 bg-slate-50/50 flex flex-col justify-between min-h-[85px] h-auto pb-1.5 shadow-sm">
                       <div>
                         <div className="flex justify-between items-start gap-1">
-                          <span className="text-[7.5px] font-extrabold text-slate-700 leading-tight truncate w-[80%] block" title={career.title}>
+                          <span className="text-[8px] font-extrabold text-slate-700 leading-tight break-words block">
                             {idx + 1}. {career.title}
                           </span>
                           <span className="text-[8px] font-black text-orange-600 font-mono leading-none shrink-0">{career.matchPercentage}%</span>
                         </div>
-                        <p className="text-[6.5px] text-slate-400 font-medium leading-normal mt-0.5 line-clamp-3 [word-break:keep-all]">
+                        <p className="text-[7px] text-slate-500 font-medium leading-normal mt-1 break-words">
                           {career.description}
                         </p>
                       </div>
@@ -347,15 +424,15 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
               </div>
 
               {/* Action advice roadmap */}
-              <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-[9px] leading-relaxed space-y-1">
-                <span className="text-[8px] font-black text-slate-400 block uppercase tracking-wider">Lộ trình rèn luyện hành động cụ thể năm học mới:</span>
-                <div className="grid grid-cols-3 gap-2">
-                  {report.advice.slice(0, 3).map((adv, idx) => (
-                    <div key={idx} className="p-1.5 bg-slate-50 rounded-lg border border-slate-100 space-y-0.5 relative flex items-start gap-1.5">
-                      <span className="w-3.5 h-3.5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[7.5px] font-black shrink-0 mt-0.5">
+              <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-[9px] leading-relaxed space-y-1.5">
+                <span className="text-[8px] font-black text-slate-400 block uppercase tracking-wider border-b pb-0.5">Lộ trình rèn luyện hành động cụ thể cho năm học mới:</span>
+                <div className="space-y-2">
+                  {report.advice.map((adv, idx) => (
+                    <div key={idx} className="p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-start gap-2.5">
+                      <span className="w-4 h-4 rounded-full bg-slate-800 text-white flex items-center justify-center text-[8px] font-black shrink-0 mt-0.5">
                         {idx + 1}
                       </span>
-                      <p className="font-semibold text-slate-600 leading-snug [word-break:keep-all]">{adv}</p>
+                      <p className="font-semibold text-slate-600 leading-relaxed break-words flex-1">{adv}</p>
                     </div>
                   ))}
                 </div>
@@ -365,8 +442,8 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
 
           </div>
 
-          {/* Footer - No signatures required */}
-          <div className="border-t border-slate-200 pt-3">
+          {/* Footer - Page 2 */}
+          <div className="border-t border-slate-200 pt-3 mt-4">
             <div className="flex justify-between items-center text-[9px] leading-normal font-semibold text-slate-400">
               <div>
                 Học sinh: <span className="font-extrabold text-slate-700">{report.profile.name}</span>
@@ -374,13 +451,15 @@ export default function A4PortraitPreview({ report }: A4PortraitPreviewProps) {
               <div>
                 Trường: <span className="font-extrabold text-slate-700">{report.profile.school || 'THPT FPT Tây Hà Nội'}</span>
               </div>
-              <div>
-                Giáo viên đồng hành: <span className="font-extrabold text-slate-700">{report.profile.teacherInCharge || 'Cô Nguyễn Thị Hoa'}</span>
+              <div className="text-right flex items-center gap-2">
+                <span>Giáo viên đồng hành: <span className="font-extrabold text-slate-700">{report.profile.teacherInCharge || 'Chưa cập nhật'}</span></span>
+                <span className="font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded ml-1 font-mono">Trang 2/2</span>
               </div>
             </div>
           </div>
 
         </div>
+
       </div>
     </div>
   );

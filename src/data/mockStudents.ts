@@ -21,7 +21,9 @@ const rawMockStudents = [
       { subjectName: 'Vật lý', currentScore: 8.8, targetScore: 9.0, trend: 'stable' as const, favoriteLevel: 4 },
       { subjectName: 'Ngữ văn', currentScore: 7.2, targetScore: 8.0, trend: 'up' as const, favoriteLevel: 3 },
       { subjectName: 'Tiếng Anh', currentScore: 8.5, targetScore: 9.0, trend: 'stable' as const, favoriteLevel: 4 },
-      { subjectName: 'Hóa học', currentScore: 8.0, targetScore: 8.5, trend: 'up' as const, favoriteLevel: 3 }
+      { subjectName: 'Hóa học', currentScore: 8.0, targetScore: 8.5, trend: 'up' as const, favoriteLevel: 3 },
+      { subjectName: 'Giáo dục thể chất', currentScore: 8.5, targetScore: 9.0, trend: 'stable' as const, favoriteLevel: 4, scoreType: 'pass_fail', assessmentResult: 'Đạt' },
+      { subjectName: 'Hoạt động trải nghiệm', currentScore: 8.5, targetScore: 9.0, trend: 'stable' as const, favoriteLevel: 4, scoreType: 'pass_fail', assessmentResult: 'Đạt' }
     ],
     experientialActivities: [
       { activityName: 'Học tập trải nghiệm Stem-Robotics', val: 95 },
@@ -82,7 +84,8 @@ const rawMockStudents = [
       { subjectName: 'Tiếng Anh', currentScore: 9.0, targetScore: 9.5, trend: 'up' as const, favoriteLevel: 5 },
       { subjectName: 'Lịch sử', currentScore: 8.2, targetScore: 8.5, trend: 'stable' as const, favoriteLevel: 4 },
       { subjectName: 'Địa lý', currentScore: 8.0, targetScore: 8.5, trend: 'up' as const, favoriteLevel: 4 },
-      { subjectName: 'Thể dục', currentScore: 9.0, targetScore: 9.5, trend: 'up' as const, favoriteLevel: 5 }
+      { subjectName: 'Giáo dục thể chất', currentScore: 8.5, targetScore: 9.5, trend: 'up' as const, favoriteLevel: 5, scoreType: 'pass_fail', assessmentResult: 'Đạt' },
+      { subjectName: 'Giáo dục địa phương', currentScore: 8.5, targetScore: 9.0, trend: 'stable' as const, favoriteLevel: 4, scoreType: 'pass_fail', assessmentResult: 'Đạt' }
     ],
     experientialActivities: [
       { activityName: 'Tổ chức Chương trình Trung thu / Sự kiện trường', val: 96 },
@@ -142,7 +145,9 @@ const rawMockStudents = [
       { subjectName: 'Mỹ thuật', currentScore: 9.5, targetScore: 9.8, trend: 'up' as const, favoriteLevel: 5 },
       { subjectName: 'Ng ngữ văn', currentScore: 8.8, targetScore: 9.2, trend: 'up' as const, favoriteLevel: 5 },
       { subjectName: 'Tiếng Anh', currentScore: 8.2, targetScore: 8.8, trend: 'stable' as const, favoriteLevel: 4 },
-      { subjectName: 'Sinh học', currentScore: 7.8, targetScore: 8.0, trend: 'stable' as const, favoriteLevel: 3 }
+      { subjectName: 'Sinh học', currentScore: 7.8, targetScore: 8.0, trend: 'stable' as const, favoriteLevel: 3 },
+      { subjectName: 'Giáo dục thể chất', currentScore: 8.5, targetScore: 9.0, trend: 'stable' as const, favoriteLevel: 4, scoreType: 'pass_fail', assessmentResult: 'Đạt' },
+      { subjectName: 'Nghệ thuật', currentScore: 8.5, targetScore: 9.0, trend: 'stable' as const, favoriteLevel: 4, scoreType: 'pass_fail', assessmentResult: 'Đạt' }
     ],
     experientialActivities: [
       { activityName: 'Triển lãm tranh vẽ học sinh thủ đô', val: 94 },

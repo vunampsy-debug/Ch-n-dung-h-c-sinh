@@ -14,7 +14,7 @@ export interface SubjectScore {
   originalSubjectName?: string | null;
   scoreType?: 'numeric' | 'pass_fail' | 'not_available' | null;
   score?: number | null;
-  assessmentResult?: 'Đạt' | 'Chưa đạt' | null;
+  assessmentResult?: 'Đạt' | 'Chưa đạt' | 'Không đạt' | null;
   interestLevel?: number | null; // 1 to 5
   source?: 'manual' | 'slider' | 'pasted_text' | 'pdf' | null;
   sourceColumn?: string | null;
