@@ -11,6 +11,7 @@ import {
 import * as XLSX from 'xlsx';
 import { StudentReport } from '../types';
 import A4PortraitPreview from './A4PortraitPreview';
+import { parseExperientialPdf, generateAIPortrait } from '../utils/geminiClient';
 
 interface TeacherDashboardProps {
   students: StudentReport[];
@@ -86,18 +87,7 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
         try {
           const base64Data = reader.result as string;
 
-          const response = await fetch('/api/parse-experiential-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pdfBase64: base64Data })
-          });
-
-          if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error || 'Lỗi khi máy chủ phân tích PDF.');
-          }
-
-          const data = await response.json();
+          const data = await parseExperientialPdf(base64Data);
           const extracted = data.activities || [];
 
           if (extracted.length === 0) {
@@ -201,22 +191,12 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
   const handleRegeneratePortrait = async (student: StudentReport) => {
     setIsRegenerating(true);
     try {
-      const response = await fetch('/api/generate-portrait', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profile: student.profile,
-          academicScores: student.academicScores,
-          experientialActivities: student.experientialActivities,
-          survey: student.survey
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Không thể tạo lại chân dung qua AI.');
-      }
-
-      const generated = await response.json();
+      const generated = await generateAIPortrait(
+        student.profile,
+        student.academicScores,
+        student.experientialActivities,
+        student.survey
+      );
       
       const updatedStudents = students.map(s => {
         if (s.id === student.id) {

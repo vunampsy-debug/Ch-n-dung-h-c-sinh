@@ -9,6 +9,7 @@ import SurveyWizard from './SurveyWizard';
 import ExcelImporter from './ExcelImporter';
 import A4PortraitPreview from './A4PortraitPreview';
 import { normalizeSubjectName, normalizeAndMergeSubjectScores } from '../utils/subjectNormalization';
+import { parseTranscript, parseExperientialText, parseExperientialPdf, generateAIPortrait } from '../utils/geminiClient';
 
 interface StudentWorkspaceProps {
   report: StudentReport;
@@ -111,17 +112,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
     setParseStatus({ success: false, message: '' });
 
     try {
-      const response = await fetch('/api/parse-transcript', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transcriptText })
-      });
-
-      if (!response.ok) {
-        throw new Error('Không thể kết nối đến máy chủ AI!');
-      }
-
-      const data = await response.json();
+      const data = await parseTranscript(transcriptText);
       if (data.scores && data.scores.length > 0) {
         // Merge or update the scores list
         const updated = [...academicScores];
@@ -160,17 +151,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
     setExperientialParseStatus({ success: false, message: '' });
 
     try {
-      const response = await fetch('/api/parse-experiential-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: experientialText })
-      });
-
-      if (!response.ok) {
-        throw new Error('Không thể kết nối đến máy chủ AI!');
-      }
-
-      const data = await response.json();
+      const data = await parseExperientialText(experientialText);
       if (data.activities && data.activities.length > 0) {
         const updated = [...experientialActivities];
         data.activities.forEach((newAct: any) => {
@@ -216,18 +197,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
         try {
           const base64Data = reader.result as string;
 
-          const response = await fetch('/api/parse-experiential-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pdfBase64: base64Data })
-          });
-
-          if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error || 'Lỗi khi máy chủ phân tích PDF.');
-          }
-
-          const data = await response.json();
+          const data = await parseExperientialPdf(base64Data);
           const extracted = data.activities || [];
 
           if (extracted.length === 0) {
@@ -247,6 +217,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
             }
           });
 
+          setAcademicScores(normalizeAndMergeSubjectScores(academicScores)); // Ensure synchronization
           setExperientialActivities(updated);
           setExperientialParseStatus({
             success: true,
@@ -273,25 +244,13 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
     setGenerateError('');
     setLoadingMsgIdx(0);
 
-    const payload = {
-      profile,
-      academicScores,
-      experientialActivities,
-      survey
-    };
-
     try {
-      const response = await fetch('/api/generate-portrait', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error('Lỗi từ máy chủ AI khi phân tích hồ sơ!');
-      }
-
-      const data = await response.json();
+      const data = await generateAIPortrait(
+        profile,
+        academicScores,
+        experientialActivities,
+        survey
+      );
 
       // Successfully received generated portrait analysis
       const updatedReport: StudentReport = {
