@@ -266,7 +266,7 @@ export default function RoleSelection({ students, onSelectRole, onCreateNewStude
                       <label className="text-[10px] font-bold text-slate-500 uppercase block">Nhập mật khẩu giáo viên:</label>
                       <input
                         type="password"
-                        placeholder="Nhập mật khẩu (giaovien2026)..."
+                        placeholder="Nhập mật khẩu..."
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

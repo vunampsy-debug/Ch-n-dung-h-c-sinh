@@ -44,7 +44,7 @@ export default function TeacherDashboard({ students, onUpdateStudents, onBackToR
         }));
         setOnlinePortraits(data);
       } catch (err) {
-        console.error("Lỗi khi tải chân dung từ Firebase student_portraits:", err);
+        console.warn("Lỗi khi tải chân dung từ Firebase student_portraits:", err);
       } finally {
         setIsLoadingPortraits(false);
       }

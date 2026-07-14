@@ -259,7 +259,7 @@ export default function StudentWorkspace({ report, onSaveReport, onBackToRoleSel
       
       alert("Hệ thống đã đồng bộ thành công chân dung của em lên lớp học!");
     } catch (error) {
-      console.error("Lỗi đồng bộ cơ sở dữ liệu: ", error);
+      console.warn("Lỗi đồng bộ cơ sở dữ liệu: ", error);
       alert("Có lỗi xảy ra khi đồng bộ dữ liệu. Em hãy báo lại với thầy/cô nhé!");
     }
   };

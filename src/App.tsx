@@ -90,7 +90,7 @@ export default function App() {
       );
       setSyncStatus('synced');
     } catch (err) {
-      console.error('Failed to save to Firestore:', err);
+      console.warn('Failed to save to Firestore:', err);
       setSyncStatus('error');
     }
   };
